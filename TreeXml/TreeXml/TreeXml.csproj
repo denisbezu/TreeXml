@@ -48,5 +48,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TreeXmlLibrary\TreeXmlLibrary.csproj">
+      <Project>{35a1abba-6a2d-485d-af0d-18c68eb63674}</Project>
+      <Name>TreeXmlLibrary</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
