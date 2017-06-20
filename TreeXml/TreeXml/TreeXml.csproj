@@ -40,6 +40,9 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="TreeXmlLibrary">
+      <HintPath>..\TreeXmlLibrary\bin\Debug\TreeXmlLibrary.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -49,10 +52,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TreeXmlLibrary\TreeXmlLibrary.csproj">
-      <Project>{35a1abba-6a2d-485d-af0d-18c68eb63674}</Project>
-      <Name>TreeXmlLibrary</Name>
-    </ProjectReference>
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
