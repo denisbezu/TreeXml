@@ -12,12 +12,13 @@ namespace TreeXmlLibrary
         {
         }
 
-        public Employee(int id, string name, string lastName, int age)
+        public Employee(int id, string name, string lastName, int age, string position)
         {
             Id = id;
             Name = name;
             LastName = lastName;
             Age = age;
+            Position = position;
         }
         public int Id { get; set; }
         public string Name { get; set; }
