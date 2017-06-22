@@ -265,7 +265,7 @@ namespace TreeXmlLibrary
         }
         public T Temp { get; set; }
 
-        private List<Node<T>> Childrens { get; set; }
+        public List<Node<T>> Childrens { get; set; }
 
     }
 }

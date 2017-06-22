@@ -11,12 +11,10 @@ namespace TreeXml
         public string Input { get; set; }
         public Dictionary<string, string> CommandArgument { get; set; }
         public Node<Employee> Root { get; set; }
-
         public ConsoleApi()
         {
             CommandArgument = new Dictionary<string, string>();
         }
-
         public void StartInput()
         {
             bool inputContinue = true;
@@ -58,7 +56,6 @@ namespace TreeXml
                 Console.WriteLine();
             }
         }
-
         public void DoWork()
         {
             foreach (var pair in CommandArgument)
@@ -71,14 +68,12 @@ namespace TreeXml
                 }
             }
         }
-
         public void Help()
         {
             Console.WriteLine("Available commands: ");
             Console.Write("-s \t Show the tree \nhelp \t Show this help \nexit \t" +
                           " close program\ncls \t clear console");
         }
-
         public void ShowTree(string argument)
         {
             if (argument == "test")
@@ -88,7 +83,6 @@ namespace TreeXml
                 Console.Write("Openning file " + argument + "...");
             }
         }
-
         private bool CorrectArgCommands() // проверяем все аргументы
         {
             bool allArgumentsCorrect = true;
@@ -133,8 +127,7 @@ namespace TreeXml
             }
             return noSpacesList;
         }
-
-        private void DictionaryFill(List<string> splitInput)
+        private void DictionaryFill(List<string> splitInput)// заполняем словарь команда-аргумент
         {
             if (splitInput.Count % 2 != 0)
                 return;
@@ -143,8 +136,7 @@ namespace TreeXml
                 if (!CommandArgument.ContainsKey(splitInput[i]))
                     CommandArgument.Add(splitInput[i], splitInput[i + 1]);
             }
-        } // заполняем словарь команда-аргумент
-
+        } 
         private bool CheckShowCommand(string command, string argument) // проверка команды отображения дерева
         {
             Regex regex = new Regex(@"^[a-z0-9]+\.xml$");
