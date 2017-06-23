@@ -46,7 +46,7 @@ namespace TreeXml
                 {
                     DictionaryFill(SplitInput());
                     if (CorrectArgCommands())
-                        DoWork();
+                        DoCommands();
                     else
                     {
                         Console.Write("Invalid command, retry please");
@@ -56,7 +56,7 @@ namespace TreeXml
                 Console.WriteLine();
             }
         }
-        public void DoWork()
+        public void DoCommands()
         {
             foreach (var pair in CommandArgument)
             {
@@ -65,6 +65,9 @@ namespace TreeXml
                     case "-s":
                         ShowTree(pair.Value);
                         break;
+                    case "-a":
+                        SearchTestCommand(pair.Value);
+                        break;
                 }
             }
         }
@@ -72,12 +75,17 @@ namespace TreeXml
         {
             Console.WriteLine("Available commands: ");
             Console.Write("-s \t Show the tree \nhelp \t Show this help \nexit \t" +
-                          " close program\ncls \t clear console");
+                          " close program\ncls \t clear console\n-a \t Search algorithm");
         }
         public void ShowTree(string argument)
         {
+            //добавить потом проверку на null root-у
             if (argument == "test")
-                Console.Write(Root);
+            {
+                var consoleDrawer = new ConsoleDrawer();
+                var tree = consoleDrawer.DrawTree(Root);
+                Console.Write(tree);
+            }
             else
             {
                 Console.Write("Openning file " + argument + "...");
@@ -94,6 +102,10 @@ namespace TreeXml
                         if (!CheckShowCommand(pair.Key, pair.Value))
                             return false;
                         break;
+                    case "-a":
+                        if (!CheckAlgoCommand(pair.Key, pair.Value))
+                            return false;
+                        break;
                     default:
                         allArgumentsCorrect = false;
                         break;
@@ -101,12 +113,9 @@ namespace TreeXml
             }
             if (CommandArgument.Count * 2 != SplitInput().Count)
                 allArgumentsCorrect = false;
-
             if (!allArgumentsCorrect)
-            {
-                //Console.Write("Invalid command, retry please");
                 return false;
-            }
+            
             return true;
         }
         private List<string> SplitInput() // разделяем строку ввода на команды и аргументы подряд
@@ -143,6 +152,35 @@ namespace TreeXml
             if (command.Equals("-s") && (argument.Equals("test") || regex.IsMatch(argument)))
                 return true;
             return false;
+        }
+        private bool CheckAlgoCommand(string command, string argument)
+        {
+            if (command.Equals("-a") && (argument.ToLower().Equals("level") || argument.ToLower().Equals("width")))
+                return true;
+            return false;
+        }
+        private void SearchTestCommand(string argument)// добавить emp
+        {
+            Searcher searcher = new Searcher();
+            Employee empSearch = new Employee {Id = 7};
+            int step;
+            Node<Employee> searcherResult; 
+            if(argument.ToLower().Equals("level"))
+               searcherResult = searcher.LevelSearchFirst(Root, empSearch/*new Employee(1, "Sasha", "Maslenikov", 25, "Project Manager")*/, out step);
+            else
+                searcherResult = searcher.WidthSearchFirst(Root, new Employee(1, "Sasha", "Maslenikov", 25, "Project Manager"), out step);
+            
+            if (searcherResult != null)
+            {
+                Console.Write("Found node:\nName : " + searcherResult.Instance.Name + "\n" +
+                              "Lastname : " + searcherResult.Instance.LastName + "\nAge : " +
+                              searcherResult.Instance.Age + "\nPosition : " + searcherResult.Instance.Position + "\n");
+                Console.WriteLine("Number of steps: {0}", step);
+            }
+            else
+            {
+                Console.WriteLine("No");
+            }
         }
     }
 }

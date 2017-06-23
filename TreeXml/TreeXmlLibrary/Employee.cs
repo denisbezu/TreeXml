@@ -8,10 +8,9 @@ namespace TreeXmlLibrary
 {
     public class Employee : IEquatable<Employee>
     { 
-        public Employee()
+        public Employee()// возможно убрать
         {
         }
-
         public Employee(int id, string name, string lastName, int age, string position)
         {
             Id = id;
@@ -25,13 +24,10 @@ namespace TreeXmlLibrary
         public string LastName { get; set; }
         public int Age { get; set; }
         public string Position { get; set; }
-
         public override string ToString()
         {
             return new StringBuilder().Append(LastName).Append(" ").Append(Name).ToString();
         }
-
-
         public bool Equals(Employee secondEmployee)
         {
             if (ReferenceEquals(null, secondEmployee))
@@ -44,7 +40,6 @@ namespace TreeXmlLibrary
                 Age == secondEmployee.Age &&
                 string.Equals(Position, secondEmployee.Position);
         }
-
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj))
@@ -55,7 +50,6 @@ namespace TreeXmlLibrary
                 return false;
             return Equals((Employee) obj);
         }
-
         public override int GetHashCode()
         {
             unchecked

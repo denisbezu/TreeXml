@@ -18,7 +18,7 @@ namespace TreeXmlLibrary
             {
                 counter++;
                 var currentNode = nodesQueue.Peek();
-                if (currentNode.Temp.Equals(employee))
+                if (SearchPicker(currentNode.Instance, employee))
                 {
                     step = counter;
                     return currentNode;
@@ -26,7 +26,7 @@ namespace TreeXmlLibrary
                 else
                 {
                     nodesQueue.Dequeue();
-                    foreach (var children in currentNode.Childrens)
+                    foreach (var children in currentNode.Children)
                     {
                         nodesQueue.Enqueue(children);
                     }
@@ -45,18 +45,57 @@ namespace TreeXmlLibrary
             {
                 counter++;
                 var currentNode = nodesStack.Pop();
-                if (currentNode.Temp.Equals(employee))
+                if (SearchPicker(currentNode.Instance, employee))
                 {
                     step = counter;
                     return currentNode;
                 }
-                foreach (var children in currentNode.Childrens)
+                foreach (var children in currentNode.Children)
                 {
                     nodesStack.Push(children);
                 }
             }
             step = counter;
             return null;
+        }
+
+        private bool SearchById(Employee currentEmployee, Employee searchableEmployee)
+        {
+            if (currentEmployee.Id.Equals(searchableEmployee.Id))
+                return true;
+            return false;
+        }
+
+        private bool SearchByNameLastName(Employee currentEmployee, Employee searchableEmployee)
+        {
+            if (currentEmployee.LastName.Equals(searchableEmployee.LastName)
+                && currentEmployee.Name.Equals(searchableEmployee.Name))
+                return true;
+            return false;
+        }
+
+        private bool SearchByAll(Employee currentEmployee, Employee searchableEmployee)
+        {
+            if (currentEmployee.Equals(searchableEmployee))
+                return true;
+            return false;
+        }
+
+        private bool SearchPicker(Employee currentEmployee, Employee searchableEmployee)
+        {
+            if (searchableEmployee.Id != 0 && searchableEmployee.LastName != null
+                && searchableEmployee.Name != null && searchableEmployee.Age != 0
+                && searchableEmployee.Position != null)
+                return SearchByAll(currentEmployee, searchableEmployee);
+            else if (searchableEmployee.Id != 0 && searchableEmployee.LastName == null
+                     && searchableEmployee.Name == null && searchableEmployee.Age == 0
+                     && searchableEmployee.Position == null)
+                return SearchById(currentEmployee, searchableEmployee);
+            else if (searchableEmployee.Id == 0 && searchableEmployee.LastName != null
+                     && searchableEmployee.Name != null && searchableEmployee.Age == 0
+                     && searchableEmployee.Position == null)
+                return SearchByNameLastName(currentEmployee, searchableEmployee);
+            return false;// возможно не так и потребуетсяя добавить и другие варианты
         }
     }
 }
