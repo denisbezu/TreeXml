@@ -5,7 +5,7 @@ namespace TreeXmlLibrary
     public class Tree<T> where T:class
     {
         private bool _rootExist;
-        public List<T> Nodes { get; set; }
+        private List<T> Nodes { get; set; }
         public Tree()
         {
             Nodes = new List<T>();
@@ -20,7 +20,7 @@ namespace TreeXmlLibrary
             }
             return root;
         }
-        public Node<T> AddNode(T t, Node<T> parent)
+        public Node<T> AddNode(T t, Node<T> parent)// поправить
         {
             var addedNode = new Node<T>(t);
             if (!CheckContains(addedNode, parent))

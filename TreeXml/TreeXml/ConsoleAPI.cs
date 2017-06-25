@@ -8,12 +8,11 @@ namespace TreeXml
 {
     public class ConsoleApi
     {
-        public string Input { get; set; }
-        public Dictionary<string, string> CommandArgument { get; set; }
+        private string Input { get; set; }
         public Node<Employee> Root { get; set; }
         public ConsoleApi()
         {
-            CommandArgument = new Dictionary<string, string>();
+
         }
         public void StartInput()
         {
@@ -21,103 +20,131 @@ namespace TreeXml
             while (inputContinue)
             {
                 Input = Console.ReadLine();
-                if (SplitInput().Count == 1)
+                var commandsParameters = SplitInput();
+                if (commandsParameters.Count == 1)
                 {
-                    switch (Input)
-                    {
-                        case "help":
-                            Help();
-                            break;
-                        case "exit":
-                            inputContinue = false;
-                            break;
-                        case "-s":
-                            ShowTree("test");
-                            break;
-                        case "cls":
-                            Console.Clear();
-                            break;
-                        default:
-                            Console.Write("Invalid command, retry please");
-                            break;
-                    }
+                    SingleCommandExecution(ref inputContinue); // выполняем комманды help, cls, exit
                 }
                 else
                 {
-                    DictionaryFill(SplitInput());
-                    if (CorrectArgCommands())
-                        DoCommands();
+                    if (CorrectArgCommands(commandsParameters))
+                        DoCommands(commandsParameters);
                     else
                     {
                         Console.Write("Invalid command, retry please");
                     }
                 }
-                CommandArgument.Clear();
                 Console.WriteLine();
             }
         }
-        public void DoCommands()
+
+        private void SingleCommandExecution(ref bool inputContinue)
         {
-            foreach (var pair in CommandArgument)
+            switch (Input.Trim().ToLower())
             {
-                switch (pair.Key)
+                case "help":
+                    HelpCommand();
+                    break;
+                case "exit":
+                    inputContinue = false;
+                    break;
+                case "cls":
+                    Console.Clear();
+                    break;
+                default:
+                    Console.Write("Invalid command, retry please");
+                    break;
+            }
+        }
+
+        private void DoCommands(List<string> commandsArgs)
+        {
+            for (int i = 0; i < commandsArgs.Count; i += 2)
+            {
+                switch (commandsArgs[i].ToLower())
                 {
-                    case "-s":
-                        ShowTree(pair.Value);
+                    case "cls":
+                    case "help":
+                    case "exit":
+                        SingleHelpCommand(commandsArgs[i]);
                         break;
-                    case "-a":
-                        SearchTestCommand(pair.Value);
+                    case "open":
+
                         break;
                 }
             }
+
+
+
+
+
+            //foreach (var pair in CommandArgument)
+            //{
+            //    switch (pair.Key)
+            //    {
+            //        case "-s":
+            //            ShowTree(pair.Value);
+            //            break;
+            //        case "-a":
+            //            SearchTestCommand(pair.Value);
+            //            break;
+            //    }
+            //}
         }
-        public void Help()
+
+
+        private void SingleHelpCommand(string command) // возможно следует переделать все на возращаемое значение string
+        {
+            switch (command.ToLower())
+            {
+                case "cls":
+                    Console.Write("CLS \t This command allows you to clear the screen");
+                    break;
+                case "help":
+                    Console.Write("HELP \t This command allows you to view all available commands");
+                    break;
+                case "exit":
+                    Console.Write("EXIT \t This command allows you to exit the program");
+                    break;
+            }
+        }
+        private void HelpCommand()
         {
             Console.WriteLine("Available commands: ");
             Console.Write("-s \t Show the tree \nhelp \t Show this help \nexit \t" +
                           " close program\ncls \t clear console\n-a \t Search algorithm");
         }
-        public void ShowTree(string argument)
-        {
-            //добавить потом проверку на null root-у
-            if (argument == "test")
-            {
-                var consoleDrawer = new ConsoleDrawer();
-                var tree = consoleDrawer.DrawTree(Root);
-                Console.Write(tree);
-            }
-            else
-            {
-                Console.Write("Openning file " + argument + "...");
-            }
-        }
-        private bool CorrectArgCommands() // проверяем все аргументы
+        
+        private bool CorrectArgCommands(List<string> commandsArgs) // проверяем все аргументы
         {
             bool allArgumentsCorrect = true;
-            foreach (var pair in CommandArgument)
+            switch (commandsArgs[0].ToLower())
             {
-                switch (pair.Key)
-                {
-                    case "-s":
-                        if (!CheckShowCommand(pair.Key, pair.Value))
-                            return false;
-                        break;
-                    case "-a":
-                        if (!CheckAlgoCommand(pair.Key, pair.Value))
-                            return false;
-                        break;
-                    default:
-                        allArgumentsCorrect = false;
-                        break;
-                }
+                case "cls":
+                case "help":
+                case "exit":
+                    if (commandsArgs.Count != 2 || !CheckSingleCommand(commandsArgs[1]))
+                        return false;
+                    break;
+                case "open":
+
+                    break;
+                default:
+                    allArgumentsCorrect = false;
+                    break;
             }
-            if (CommandArgument.Count * 2 != SplitInput().Count)
+            if (commandsArgs.Count % 2 == 1)
                 allArgumentsCorrect = false;
-            if (!allArgumentsCorrect)
-                return false;
-            
-            return true;
+            return allArgumentsCorrect;
         }
+
+        private bool CheckSingleCommand(string parameter)
+        {
+            if (parameter == "/?")
+                return true;
+            return false;
+        }
+
         private List<string> SplitInput() // разделяем строку ввода на команды и аргументы подряд
         {
             string currentInput = Input;
@@ -136,16 +163,9 @@ namespace TreeXml
             }
             return noSpacesList;
         }
-        private void DictionaryFill(List<string> splitInput)// заполняем словарь команда-аргумент
-        {
-            if (splitInput.Count % 2 != 0)
-                return;
-            for (int i = 0; i < splitInput.Count; i += 2)
-            {
-                if (!CommandArgument.ContainsKey(splitInput[i]))
-                    CommandArgument.Add(splitInput[i], splitInput[i + 1]);
-            }
-        } 
+
+
+
         private bool CheckShowCommand(string command, string argument) // проверка команды отображения дерева
         {
             Regex regex = new Regex(@"^[a-z0-9]+\.xml$");
@@ -162,14 +182,14 @@ namespace TreeXml
         private void SearchTestCommand(string argument)// добавить emp
         {
             Searcher searcher = new Searcher();
-            Employee empSearch = new Employee {Id = 7};
+            Employee empSearch = new Employee { Id = 7 };
             int step;
-            Node<Employee> searcherResult; 
-            if(argument.ToLower().Equals("level"))
-               searcherResult = searcher.LevelSearchFirst(Root, empSearch/*new Employee(1, "Sasha", "Maslenikov", 25, "Project Manager")*/, out step);
+            Node<Employee> searcherResult;
+            if (argument.ToLower().Equals("level"))
+                searcherResult = searcher.LevelSearchFirst(Root, empSearch/*new Employee(1, "Sasha", "Maslenikov", 25, "Project Manager")*/, out step);
             else
                 searcherResult = searcher.WidthSearchFirst(Root, new Employee(1, "Sasha", "Maslenikov", 25, "Project Manager"), out step);
-            
+
             if (searcherResult != null)
             {
                 Console.Write("Found node:\nName : " + searcherResult.Instance.Name + "\n" +
@@ -180,6 +200,21 @@ namespace TreeXml
             else
             {
                 Console.WriteLine("No");
+            }
+        }
+
+        private void ShowTree(string argument)
+        {
+            //добавить потом проверку на null root-у
+            if (argument == "test")
+            {
+                var consoleDrawer = new ConsoleDrawer();
+                var tree = consoleDrawer.DrawTree(Root);
+                Console.Write(tree);
+            }
+            else
+            {
+                Console.Write("Openning file " + argument + "...");
             }
         }
     }

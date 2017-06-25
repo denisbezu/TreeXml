@@ -8,17 +8,17 @@ namespace TreeXmlLibrary
 {
     public class Searcher
     {
-        public Node<Employee> WidthSearchFirst(Node<Employee> rootNode, Employee employee, out int step)
+        public Node<T> WidthSearchFirst<T>(Node<T> rootNode, T t, out int step) where T : class
         {
             var counter = 0;
 
-            var nodesQueue = new Queue<Node<Employee>>();
+            var nodesQueue = new Queue<Node<T>>();
             nodesQueue.Enqueue(rootNode);
             while (nodesQueue.Count != 0)
             {
                 counter++;
                 var currentNode = nodesQueue.Peek();
-                if (SearchPicker(currentNode.Instance, employee))
+                if (SearchPicker(currentNode.Instance, t))
                 {
                     step = counter;
                     return currentNode;
@@ -36,16 +36,16 @@ namespace TreeXmlLibrary
             return null;
         }
 
-        public Node<Employee> LevelSearchFirst(Node<Employee> rootNode, Employee employee, out int step)
+        public Node<T> LevelSearchFirst<T>(Node<T> rootNode, T t, out int step) where T:class 
         {
             var counter = 0;
-            var nodesStack = new Stack<Node<Employee>>();
+            var nodesStack = new Stack<Node<T>>();
             nodesStack.Push(rootNode);
             while (nodesStack.Count != 0)
             {
                 counter++;
                 var currentNode = nodesStack.Pop();
-                if (SearchPicker(currentNode.Instance, employee))
+                if (SearchPicker(currentNode.Instance, t))
                 {
                     step = counter;
                     return currentNode;
@@ -74,27 +74,35 @@ namespace TreeXmlLibrary
             return false;
         }
 
-        private bool SearchByAll(Employee currentEmployee, Employee searchableEmployee)
+        private bool SearchByAll<T>(T currentInstance, T searchableInstance) where T : class
         {
-            if (currentEmployee.Equals(searchableEmployee))
+            if (currentInstance.Equals(searchableInstance))
                 return true;
             return false;
         }
 
-        private bool SearchPicker(Employee currentEmployee, Employee searchableEmployee)
+        private bool SearchPicker<T>(T currentInstance, T searchableInstance) where T : class
         {
-            if (searchableEmployee.Id != 0 && searchableEmployee.LastName != null
-                && searchableEmployee.Name != null && searchableEmployee.Age != 0
-                && searchableEmployee.Position != null)
-                return SearchByAll(currentEmployee, searchableEmployee);
-            else if (searchableEmployee.Id != 0 && searchableEmployee.LastName == null
-                     && searchableEmployee.Name == null && searchableEmployee.Age == 0
-                     && searchableEmployee.Position == null)
-                return SearchById(currentEmployee, searchableEmployee);
-            else if (searchableEmployee.Id == 0 && searchableEmployee.LastName != null
-                     && searchableEmployee.Name != null && searchableEmployee.Age == 0
-                     && searchableEmployee.Position == null)
-                return SearchByNameLastName(currentEmployee, searchableEmployee);
+            if (currentInstance is Employee && searchableInstance is Employee)
+            {
+                Employee currentEmployee = currentInstance as Employee;
+                Employee searchableEmployee = searchableInstance as Employee;
+                if (searchableEmployee.Id != 0 && searchableEmployee.LastName == null
+                    && searchableEmployee.Name == null && searchableEmployee.Age == 0
+                    && searchableEmployee.Position == null)
+                    return SearchById(currentEmployee, searchableEmployee);
+                else if (searchableEmployee.Id == 0 && searchableEmployee.LastName != null
+                         && searchableEmployee.Name != null && searchableEmployee.Age == 0
+                         && searchableEmployee.Position == null)
+                    return SearchByNameLastName(currentEmployee, searchableEmployee);
+                else if (searchableEmployee.Id != 0 && searchableEmployee.LastName != null
+                         && searchableEmployee.Name != null && searchableEmployee.Age != 0
+                         && searchableEmployee.Position != null)
+                    return SearchByAll(currentInstance, searchableInstance);
+            }
+            else
+                return SearchByAll(currentInstance, searchableInstance);
+
             return false;// возможно не так и потребуетсяя добавить и другие варианты
         }
     }
