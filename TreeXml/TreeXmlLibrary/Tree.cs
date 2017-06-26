@@ -36,9 +36,9 @@ namespace TreeXmlLibrary
         }
         private bool CheckContains(Node<T> addedNode, Node<T> parent)
         {
-            if (parent.Children.Contains(addedNode) || Nodes.Contains(addedNode.Instance))
+            if (parent.Children.Contains(addedNode) || Nodes.Contains(addedNode.Value))
                 return true;
-            Nodes.Add(addedNode.Instance);
+            Nodes.Add(addedNode.Value);
             return false;
         }
     }

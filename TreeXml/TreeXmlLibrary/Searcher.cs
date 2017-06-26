@@ -18,7 +18,7 @@ namespace TreeXmlLibrary
             {
                 counter++;
                 var currentNode = nodesQueue.Peek();
-                if (SearchPicker(currentNode.Instance, t))
+                if (SearchPicker(currentNode.Value, t))
                 {
                     step = counter;
                     return currentNode;
@@ -45,7 +45,7 @@ namespace TreeXmlLibrary
             {
                 counter++;
                 var currentNode = nodesStack.Pop();
-                if (SearchPicker(currentNode.Instance, t))
+                if (SearchPicker(currentNode.Value, t))
                 {
                     step = counter;
                     return currentNode;

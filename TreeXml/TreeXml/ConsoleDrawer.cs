@@ -8,7 +8,7 @@ namespace TreeXml
         public string DrawTree<T>(Node<T> rootNode) where T:class
         {
             var level = 0;
-            var tempStr = new StringBuilder(rootNode.Instance.ToString());
+            var tempStr = new StringBuilder(rootNode.Value.ToString());
             foreach (Node<T> child in rootNode.Children)
             {
                 int nextLevel = level + 1;
@@ -19,8 +19,8 @@ namespace TreeXml
         private void SubNodeToString<T>(Node<T> node, StringBuilder sb, int level) where T:class 
         {
             sb.Append("\n" + Repeat("\t", level));
-            sb.Append(node.Instance);
-            sb.Append(string.Format(" (Parent: {0})", node.Parent.Instance));
+            sb.Append(node.Value);
+            sb.Append(string.Format(" (Parent: {0})", node.Parent.Value));
             foreach (Node<T> ch in node.Children)
             {
                 int nextLevel = level + 1;
