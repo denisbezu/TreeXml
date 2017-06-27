@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Saver.cs" />
     <Compile Include="Tree.cs" />
     <Compile Include="Employee.cs" />
     <Compile Include="Node.cs" />

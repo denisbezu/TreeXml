@@ -50,8 +50,7 @@ namespace TreeXml.Commands
             };
             Dictionary<string, string> parameters = new Dictionary<string, string>
             {
-                { "open", null }, { "output", null }, { "alg", null }, { "id", null }, { "name", null },
-                { "lastname", null }, { "age", null }, { "position", null }, { "show", null },
+                { "open", null }, { "output", null }, { "alg", null }, { "show", null },
             };
             for (int i = 0; i < commandArgs.Count; i += 2)
             {
@@ -104,9 +103,10 @@ namespace TreeXml.Commands
                         }
                     case "-id":
                         {
-                            if (CheckAddIdCommand(commandArgs[i + 1], bools["alg"]) && bools["id"] == false)
+                            int idValue;
+                            if (CheckAddIntCommand(commandArgs[i + 1], bools["alg"], out idValue) && bools["id"] == false)
                             {
-                                parameters["id"] = commandArgs[i + 1];
+                                SearchableEmployee.Id = idValue;
                                 bools["id"] = true;
                             }
                             else
@@ -115,9 +115,9 @@ namespace TreeXml.Commands
                         }
                     case "-name":
                         {
-                            if (CheckAddNameCommand(commandArgs[i + 1], bools["alg"]) && bools["name"] == false)
+                            if (CheckAddStringCommand(commandArgs[i + 1], bools["alg"]) && bools["name"] == false)
                             {
-                                parameters["name"] = commandArgs[i + 1];
+                                SearchableEmployee.Name = commandArgs[i + 1];
                                 bools["name"] = true;
                             }
                             else
@@ -125,45 +125,44 @@ namespace TreeXml.Commands
                             break;
                         }
                     case "-lastname":
-                    {
-                        if (CheckAddLastNameCommand(commandArgs[i + 1], bools["alg"]) && bools["lastname"] == false)
                         {
-                            parameters["lastname"] = commandArgs[i + 1];
-                            bools["lastname"] = true;
+                            if (CheckAddStringCommand(commandArgs[i + 1], bools["alg"]) && bools["lastname"] == false)
+                            {
+                                SearchableEmployee.LastName = commandArgs[i + 1];
+                                bools["lastname"] = true;
+                            }
+                            else
+                                return false;
+                            break;
                         }
-                        else
-                            return false;
-                        break;
-                    }
                     case "-age":
-                    {
-                        if (CheckAddAgeCommand(commandArgs[i + 1], bools["alg"]) && bools["age"] == false)
                         {
-                            parameters["age"] = commandArgs[i + 1];
-                            bools["age"] = true;
+                            int ageValue;
+                            if (CheckAddIntCommand(commandArgs[i + 1], bools["alg"], out ageValue) && bools["age"] == false)
+                            {
+                                SearchableEmployee.Age = ageValue;
+                                bools["age"] = true;
+                            }
+                            else
+                                return false;
+                            break;
                         }
-                        else
-                            return false;
-                        break;
-                    }
                     case "-position":
-                    {
-                        if (CheckAddPositionCommand(commandArgs[i + 1], bools["alg"]) && bools["position"] == false)
                         {
-                            parameters["position"] = commandArgs[i + 1];
-                            bools["position"] = true;
+                            if (CheckAddStringCommand(commandArgs[i + 1], bools["alg"]) && bools["position"] == false)
+                            {
+                                SearchableEmployee.Position = commandArgs[i + 1];
+                                bools["position"] = true;
+                            }
+                            else
+                                return false;
+                            break;
                         }
-                        else
-                            return false;
-                        break;
-                    }
                     default:
                         return false;
                 }
             }
-
             return DoAllCommands(bools, parameters);
-
         }
 
         private bool DoAllCommands(Dictionary<string, bool> bools, Dictionary<string, string> parameters)
@@ -195,27 +194,7 @@ namespace TreeXml.Commands
             }
             return true;
         }
-
-        private bool CheckSearchableEmployee()
-        {
-            if (SearchableEmployee.Id != 0 && SearchableEmployee.Age == 0 && SearchableEmployee.Name == null &&
-                SearchableEmployee.LastName == null && SearchableEmployee.Position == null)
-                return true;
-            else if (SearchableEmployee.Id == 0 && SearchableEmployee.Age == 0 && SearchableEmployee.Name != null &&
-                     SearchableEmployee.LastName != null && SearchableEmployee.Position == null)
-                return true;
-            else if (SearchableEmployee.Id != 0 && SearchableEmployee.Age != 0 && SearchableEmployee.Name != null &&
-                     SearchableEmployee.LastName != null && SearchableEmployee.Position != null)
-                return true;
-            else
-                return false;
-        }
-        private bool CheckShowCommand(string parameter)
-        {
-            if (parameter.ToLower().Equals("y") || parameter.ToLower().Equals("n"))
-                return true;
-            return false;
-        }
+        
         private bool OpenFile(string parameter)
         {
             Console.WriteLine("I'am trying to open the file...");
@@ -227,20 +206,8 @@ namespace TreeXml.Commands
             return false;
 
         }
-        private bool CheckOpenCommand(string argument) // проверка команды открытия дерева
-        {
-            Regex regex = new Regex(@"^[a-z0-9]+\.xml$");
-            if (argument.Equals("test") || regex.IsMatch(argument))
-                return true;
-            return false;
-        }
-        private bool CheckAlgoCommand(string argument)
-        {
-            if (argument.ToLower().Equals("level") || argument.ToLower().Equals("width"))
-                return true;
-            return false;
-        }
-        private void SearchCommand(string argument, Employee searchableEmployee)// добавить emp
+
+        private void SearchCommand(string argument, Employee searchableEmployee)
         {
             Searcher searcher = new Searcher();
             int step;
@@ -252,16 +219,17 @@ namespace TreeXml.Commands
 
             if (searcherResult != null)
             {
-                Console.Write("Found node:\nID : " + searcherResult.Value.Id + "\nName : " + searcherResult.Value.Name + "\n" +
+                Console.Write("----------------\nFound node:\nID : " + searcherResult.Value.Id + "\nName : " + searcherResult.Value.Name + "\n" +
                               "Lastname : " + searcherResult.Value.LastName + "\nAge : " +
                               searcherResult.Value.Age + "\nPosition : " + searcherResult.Value.Position + "\n");
-                Console.WriteLine("Number of steps: {0}", step);
+                Console.WriteLine("Number of steps: {0}\n-----------------", step);
             }
             else
             {
                 Console.WriteLine("Nothing found");
             }
         }
+
         private void ShowTree(string argument)
         {
             //добавить потом проверку на null root-у
@@ -278,7 +246,43 @@ namespace TreeXml.Commands
             }
         }
 
+        private void ExtractTree(string argument)// сделать вывод в файл еще
+        {
+            Console.WriteLine("Extracting tree to the file " + argument + "...");
+        }
 
+        #region Checkers
+        private bool CheckOpenCommand(string argument) // проверка команды открытия дерева
+        {
+            Regex regex = new Regex(@"^[a-z0-9]+\.xml$");
+            if (argument.Equals("test") || regex.IsMatch(argument))
+                return true;
+            return false;
+        }
+        private bool CheckAlgoCommand(string argument)
+        {
+            if (argument.ToLower().Equals("level") || argument.ToLower().Equals("width"))
+                return true;
+            return false;
+        }
+        private bool CheckSearchableEmployee()// изменить
+        {
+            if (SearchableEmployee.Id != 0 && SearchableEmployee.Age != 0 && SearchableEmployee.Name != null &&
+                SearchableEmployee.LastName != null && SearchableEmployee.Position != null)
+                return true;
+            else if (SearchableEmployee.Id != 0)
+                return true;
+            else if ( SearchableEmployee.Name != null && SearchableEmployee.LastName != null )
+                return true;
+            else
+                return false;
+        }
+        private bool CheckShowCommand(string parameter)
+        {
+            if (parameter.ToLower().Equals("y") || parameter.ToLower().Equals("n"))
+                return true;
+            return false;
+        }
         private bool CheckOutputCommand(string argument)
         {
             Regex regex = new Regex(@"^[a-z0-9]+\.xml$");
@@ -286,62 +290,24 @@ namespace TreeXml.Commands
                 return true;
             return false;
         }
-        private void ExtractTree(string argument)// сделать вывод в файл еще
+        private bool CheckAddIntCommand(string argument, bool algValue, out int number)
         {
-            Console.WriteLine("Extracting tree to the file " + argument + "...");
-        }
-
-        private bool CheckAddIdCommand(string argument, bool algValue)
-        {
-            int number;
             bool result = Int32.TryParse(argument, out number);
             if (result && algValue && number > 0)
             {
-                SearchableEmployee.Id = number;
                 return true;
             }
             return false;
         }
-
-        private bool CheckAddNameCommand(string argument, bool algValue)
+        private bool CheckAddStringCommand(string argument, bool boolValue)
         {
-            if (algValue)
+            if (boolValue && !string.IsNullOrEmpty(argument))
             {
-                SearchableEmployee.Name = argument;
-                return true;
-            }
-            return false;
-        }//попробывать преобразовать в 1
-        private bool CheckAddLastNameCommand(string argument, bool algValue)
-        {
-            if (algValue)
-            {
-                SearchableEmployee.LastName = argument;
                 return true;
             }
             return false;
         }
-        private bool CheckAddPositionCommand(string argument, bool algValue)
-        {
-            if (algValue)
-            {
-                SearchableEmployee.Position = argument;
-                return true;
-            }
-            return false;
-        }
-        private bool CheckAddAgeCommand(string argument, bool algValue)
-        {
-            int number;
-            bool result = Int32.TryParse(argument, out number);
-            if (result && algValue && number > 0)
-            {
-                SearchableEmployee.Age = number;
-                return true;
-            }
-            return false;
-        }
-
+        #endregion
 
         static Node<Employee> TestNode()
         {
@@ -353,7 +319,7 @@ namespace TreeXml.Commands
             Employee emp6 = new Employee(1, "Not", "Needed", 25, "QA Engineer");
             Employee emp7 = new Employee(3, "Doha", "Den", 26, "Project Manager");
             Tree<Employee> tree = new Tree<Employee>();
-
+            
             var root = tree.AddRoot(emp2);
             try
             {

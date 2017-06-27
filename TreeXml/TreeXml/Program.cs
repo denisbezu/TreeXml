@@ -11,7 +11,8 @@ namespace TreeXml
     {
         static void Main(string[] args)
         {
-            
+            Saver saver = new Saver();
+            saver.LoadXml();
             ConsoleApi consoleApi = new ConsoleApi();
             
             consoleApi.StartInput();

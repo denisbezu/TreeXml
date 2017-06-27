@@ -87,18 +87,25 @@ namespace TreeXmlLibrary
             {
                 Employee currentEmployee = currentInstance as Employee;
                 Employee searchableEmployee = searchableInstance as Employee;
-                if (searchableEmployee.Id != 0 && searchableEmployee.LastName == null
-                    && searchableEmployee.Name == null && searchableEmployee.Age == 0
-                    && searchableEmployee.Position == null)
-                    return SearchById(currentEmployee, searchableEmployee);
-                else if (searchableEmployee.Id == 0 && searchableEmployee.LastName != null
-                         && searchableEmployee.Name != null && searchableEmployee.Age == 0
-                         && searchableEmployee.Position == null)
+                //if (searchableEmployee.Id != 0 && searchableEmployee.LastName == null
+                //    && searchableEmployee.Name == null && searchableEmployee.Age == 0
+                //    && searchableEmployee.Position == null)
+                //    return SearchById(currentEmployee, searchableEmployee);
+                //else if (searchableEmployee.Id == 0 && searchableEmployee.LastName != null
+                //         && searchableEmployee.Name != null && searchableEmployee.Age == 0
+                //         && searchableEmployee.Position == null)
+                //    return SearchByNameLastName(currentEmployee, searchableEmployee);
+                //else if (searchableEmployee.Id != 0 && searchableEmployee.LastName != null
+                //         && searchableEmployee.Name != null && searchableEmployee.Age != 0
+                //         && searchableEmployee.Position != null)
+                //    return SearchByAll(currentInstance, searchableInstance);
+                if (searchableEmployee.Id != 0 && searchableEmployee.Age != 0 && searchableEmployee.Name != null &&
+                searchableEmployee.LastName != null && searchableEmployee.Position != null)
+                    return SearchByAll(currentEmployee, searchableEmployee);
+                else if (searchableEmployee.Id != 0)
+                        return SearchById(currentEmployee, searchableEmployee);
+                else if(searchableEmployee.Name != null && searchableEmployee.LastName != null)
                     return SearchByNameLastName(currentEmployee, searchableEmployee);
-                else if (searchableEmployee.Id != 0 && searchableEmployee.LastName != null
-                         && searchableEmployee.Name != null && searchableEmployee.Age != 0
-                         && searchableEmployee.Position != null)
-                    return SearchByAll(currentInstance, searchableInstance);
             }
             else
                 return SearchByAll(currentInstance, searchableInstance);
