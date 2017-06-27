@@ -195,12 +195,18 @@ namespace TreeXml.Commands
             return true;
         }
         
-        private bool OpenFile(string parameter)
+        private bool OpenFile(string parameter) // поправить
         {
             Console.WriteLine("I'am trying to open the file...");
             if (parameter.ToLower().Equals("test"))
             {
                 Root = TestNode();
+                return true;
+            }
+            else
+            {
+                Saver saver = new Saver();
+                Root = saver.LoadXml(parameter);
                 return true;
             }
             return false;
@@ -233,7 +239,7 @@ namespace TreeXml.Commands
         private void ShowTree(string argument)
         {
             //добавить потом проверку на null root-у
-            if (argument == "test")
+            if (Root != null)
             {
                 var consoleDrawer = new ConsoleDrawer();
                 var tree = consoleDrawer.DrawTree(Root);

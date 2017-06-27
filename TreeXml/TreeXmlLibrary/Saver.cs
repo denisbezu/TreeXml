@@ -7,38 +7,34 @@ namespace TreeXmlLibrary
 {
     public class Saver
     {
-        XmlReader reader = XmlReader.Create("denys.xml");
-        public Tree<Employee> LoadXml()
+        XmlReader reader;
+
+        //добавить проверку на имена элементов 
+        // добавить в out параметр, была ли ошибка какая-то
+        public Node<Employee> LoadXml(string path)
         {
+            reader = XmlReader.Create(path);
             Tree<Employee> tree = new Tree<Employee>();
             Employee empToAdd;
-            Node<Employee> root;
+            Node<Employee> root = null;
             int level = 0;
             while (reader.Read())
             {
                 if (reader.IsStartElement())
                 {
-                    root = tree.AddRoot(new Employee() {LastName = reader.Name});
+                    root = tree.AddRoot(new Employee() { LastName = reader.Name });
                     level++;
                     if (reader.IsEmptyElement)
                     {
-                        empToAdd = PrintIndent(level - 1, "<" + reader.Name + ">", true);
+                        //если первый пустой, добавить проверку
                     }
                     else
-                    {
-                        empToAdd = PrintIndent(level - 1, "<" + reader.Name + ">", true);
                         ReadNode(reader, ref level, tree, root);
-                        //Console.WriteLine(reader.ReadString()); //Read the text content of the element.
-                    }
                 }
                 else
-                {
-                    empToAdd = PrintIndent(level - 1, "</" + reader.Name + ">", true);
                     level--;
-                }
-                //Console.WriteLine(level);
             }
-            return tree;
+            return root;
         }
 
         private void ReadNode(XmlReader reader, ref int level, Tree<Employee> tree, Node<Employee> parent)
@@ -51,19 +47,19 @@ namespace TreeXmlLibrary
                 {
                     level++;
                     if (reader.IsEmptyElement)
-                        empToAdd = PrintIndent(level - 1, "<" + reader.Name + ">", false);
+                    {
+                        empToAdd = MakeEmployee();
+                        var addedNode = tree.AddNode(empToAdd, parent);
+                    }
                     else
                     {
-
-                        empToAdd = PrintIndent(level - 1, "<" + reader.Name + ">", false);
+                        empToAdd = MakeEmployee();
                         var addedNode = tree.AddNode(empToAdd, parent);
                         ReadNode(reader, ref level, tree, addedNode);
-                        //Console.WriteLine(reader.ReadString()); //Read the text content of the element.
                     }
                 }
                 else
                 {
-                    empToAdd = PrintIndent(level - 1, "</" + reader.Name + ">", true);
                     if (currentLvl == level)
                     {
                         level--;
@@ -79,7 +75,7 @@ namespace TreeXmlLibrary
             }
         }
 
-        private Employee PrintIndent(int level, string str, bool isRoot)
+        private void PrintIndent(int level, string str, bool isRoot)
         {
             StringBuilder s = new StringBuilder();
             for (int i = 0; i < level; i++)
@@ -94,18 +90,18 @@ namespace TreeXmlLibrary
             }
 
             Console.WriteLine(s);
-            Employee employee = null;
-            if (!isRoot)
+        }
+
+        private Employee MakeEmployee()
+        {
+            Employee employee = new Employee()
             {
-                employee = new Employee()
-                {
-                    Name = reader.GetAttribute("Name"),
-                    LastName = reader.GetAttribute("LastName"),
-                    Position = reader.GetAttribute("Position"),
-                    Id = int.Parse(reader.GetAttribute("Id")),
-                    Age = int.Parse(reader.GetAttribute("Age"))
-                };
-            }
+                Name = reader.GetAttribute("Name"),
+                LastName = reader.GetAttribute("LastName"),
+                Position = reader.GetAttribute("Position"),
+                Id = int.Parse(reader.GetAttribute("Id")),
+                Age = int.Parse(reader.GetAttribute("Age"))
+            };
             return employee;
         }
     }
