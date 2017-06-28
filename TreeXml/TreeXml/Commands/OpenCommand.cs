@@ -24,7 +24,8 @@ namespace TreeXml.Commands
 
             return false;
         }
-        public Employee SearchableEmployee { get; set; }
+
+        private Employee SearchableEmployee { get; set; }
 
         public string ExecuteHelpCommand()
         {
@@ -206,11 +207,17 @@ namespace TreeXml.Commands
             else
             {
                 Saver saver = new Saver();
-                Root = saver.LoadXml(parameter);
+                bool errorChecker;
+                string errorMessage;
+                Tree<Employee> tree = saver.LoadXml(parameter, out errorChecker, out errorMessage);
+                if (!errorChecker)
+                {
+                    Console.WriteLine(errorMessage);
+                    return false;
+                }
+                Root = tree.Root;
                 return true;
             }
-            return false;
-
         }
 
         private void SearchCommand(string argument, Employee searchableEmployee)
@@ -246,10 +253,6 @@ namespace TreeXml.Commands
                 Console.Write(tree);
                 Console.WriteLine();
             }
-            else
-            {
-                Console.WriteLine("I am showing the file " + argument + "...");
-            }
         }
 
         private void ExtractTree(string argument)// сделать вывод в файл еще
@@ -260,7 +263,7 @@ namespace TreeXml.Commands
         #region Checkers
         private bool CheckOpenCommand(string argument) // проверка команды открытия дерева
         {
-            Regex regex = new Regex(@"^[a-z0-9]+\.xml$");
+            Regex regex = new Regex(@"^.+\.xml$");
             if (argument.Equals("test") || regex.IsMatch(argument))
                 return true;
             return false;

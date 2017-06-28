@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using TreeXml.Commands;
@@ -15,6 +16,7 @@ namespace TreeXml
         {
             while (true)
             {
+                Console.Write(Directory.GetCurrentDirectory() + ">");
                 Input = Console.ReadLine();
                 var commandsParameters = SplitInput();
                 if (commandsParameters.Count != 0)
@@ -48,7 +50,7 @@ namespace TreeXml
         private bool DoCommand(IConsoleCommand command, List<string> commandArgs)
         {
             return command.ExecuteCommand(commandArgs);
-        }        
+        }
         private List<string> SplitInput() // разделяем строку ввода на команды и аргументы подряд
         {
             string currentInput = Input;
@@ -63,11 +65,42 @@ namespace TreeXml
                     noSpacesList.RemoveAt(i - spaceCounter);
                     spaceCounter += 1;
                 }
-
             }
+            noSpacesList = CheckQuot(noSpacesList);
             return noSpacesList;
         }
 
-        
+        private List<string> CheckQuot(List<string> splittedList)
+        {
+            int rowNumber = splittedList.Count;
+            string resultString = "";
+            bool mergeContinue = false;
+            int insertIndex = 0, countModification = 0;
+            for (int i = 0; i < rowNumber; i++)
+            {
+                if (splittedList[i].StartsWith("\""))
+                {
+                    mergeContinue = true;
+                    insertIndex = i;
+                }
+                if (splittedList[i].EndsWith("\""))
+                {
+                    resultString += splittedList[i];
+                    mergeContinue = false;
+                    i -= countModification;
+                    rowNumber -= countModification;
+                    splittedList[insertIndex] = resultString.Replace('"', ' ').Trim();
+                    splittedList.RemoveRange(insertIndex + 1, countModification);
+                    countModification = 0;
+                    resultString = "";
+                }
+                if (mergeContinue)
+                {
+                    countModification++;
+                    resultString += splittedList[i] + " ";
+                }
+            }
+            return splittedList;
+        }
     }
 }

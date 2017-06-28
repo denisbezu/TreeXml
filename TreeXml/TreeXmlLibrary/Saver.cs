@@ -7,55 +7,84 @@ namespace TreeXmlLibrary
 {
     public class Saver
     {
-        XmlReader reader;
-
-        //добавить проверку на имена элементов 
-        // добавить в out параметр, была ли ошибка какая-то
-        public Node<Employee> LoadXml(string path)
+        private XmlReader _reader;
+        //добавить проверку на имена элементов (посмотреть), не уверен, что нужна 
+        public Tree<Employee> LoadXml(string path, out bool errorChecker, out string errorMessage)
         {
-            reader = XmlReader.Create(path);
-            Tree<Employee> tree = new Tree<Employee>();
-            Employee empToAdd;
-            Node<Employee> root = null;
-            int level = 0;
-            while (reader.Read())
+            errorMessage = "";
+            try
             {
-                if (reader.IsStartElement())
+                _reader = XmlReader.Create(path);
+            }
+            catch (FileNotFoundException e)
+            {
+                errorChecker = false;
+                errorMessage = e.Message;
+                return null;
+            }
+            var tree = new Tree<Employee>();
+            int level = 0;
+            try
+            {
+                while (_reader.Read())
                 {
-                    root = tree.AddRoot(new Employee() { LastName = reader.Name });
-                    level++;
-                    if (reader.IsEmptyElement)
+                    if (_reader.IsStartElement())
                     {
-                        //если первый пустой, добавить проверку
+                        tree.AddRoot(new Employee() {LastName = _reader.Name});
+                        level++;
+                        if (_reader.IsEmptyElement)
+                        {
+                            //если первый пустой, добавить проверку
+                        }
+                        else
+                        {
+                            try
+                            {
+                                ReadNode(ref level, tree, tree.Root);
+                            }
+                            catch (Exception e)
+                            {
+                                errorChecker = false;
+                                errorMessage = e.Message;
+                                return null;
+                            }
+                        }
                     }
                     else
-                        ReadNode(reader, ref level, tree, root);
+                        level--;
                 }
-                else
-                    level--;
             }
-            return root;
+            catch (XmlException e)
+            {
+                errorChecker = false;
+                errorMessage = e.Message;
+                return null;
+            }
+            errorChecker = true;      
+            return tree;
         }
 
-        private void ReadNode(XmlReader reader, ref int level, Tree<Employee> tree, Node<Employee> parent)
+        private void ReadNode(ref int level, Tree<Employee> tree, Node<Employee> parent)
         {
-            Employee empToAdd;
             int currentLvl = level;
-            while (reader.Read())
+            while (_reader.Read())
             {
-                if (reader.IsStartElement())
+                if (_reader.IsStartElement())
                 {
                     level++;
-                    if (reader.IsEmptyElement)
+                    Employee empToAdd;
+                    if (_reader.IsEmptyElement)
                     {
                         empToAdd = MakeEmployee();
-                        var addedNode = tree.AddNode(empToAdd, parent);
+                        tree.AddNode(empToAdd, parent);
                     }
                     else
                     {
                         empToAdd = MakeEmployee();
                         var addedNode = tree.AddNode(empToAdd, parent);
-                        ReadNode(reader, ref level, tree, addedNode);
+                        if(addedNode == null)
+                            throw new Exception("I cannot add an existing item to a tree : id = " + empToAdd.Id);
+                        ReadNode(ref level, tree, addedNode);
                     }
                 }
                 else
@@ -81,26 +110,25 @@ namespace TreeXmlLibrary
             for (int i = 0; i < level; i++)
                 s.Append("\t");
             s.Append(str);
-            if (reader.HasAttributes)
+            if (_reader.HasAttributes)
             {
-                for (int i = 0; i < reader.AttributeCount; i++)
+                for (int i = 0; i < _reader.AttributeCount; i++)
                 {
-                    s.Append("  " + reader[i]);
+                    s.Append("  " + _reader[i]);
                 }
             }
 
             Console.WriteLine(s);
         }
-
         private Employee MakeEmployee()
         {
             Employee employee = new Employee()
             {
-                Name = reader.GetAttribute("Name"),
-                LastName = reader.GetAttribute("LastName"),
-                Position = reader.GetAttribute("Position"),
-                Id = int.Parse(reader.GetAttribute("Id")),
-                Age = int.Parse(reader.GetAttribute("Age"))
+                Name = _reader.GetAttribute("Name"),
+                LastName = _reader.GetAttribute("LastName"),
+                Position = _reader.GetAttribute("Position"),
+                Id = int.Parse(_reader.GetAttribute("Id")),
+                Age = int.Parse(_reader.GetAttribute("Age"))
             };
             return employee;
         }

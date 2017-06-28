@@ -6,19 +6,20 @@ namespace TreeXmlLibrary
     {
         private bool _rootExist;
         private List<T> Nodes { get; set; }
+        public Node<T> Root { get; set; }
         public Tree()
         {
             Nodes = new List<T>();
         }
         public Node<T> AddRoot(T t)
         {
-            var root = new Node<T>(t);
+            Root = new Node<T>(t);
             if (!_rootExist)
             {
                 Nodes.Add(t);
                 _rootExist = true;
             }
-            return root;
+            return Root;
         }
         public Node<T> AddNode(T t, Node<T> parent)// поправить
         {

@@ -14,8 +14,5 @@ namespace TreeXml
             ConsoleApi consoleApi = new ConsoleApi();
             consoleApi.StartInput();
         }
-        
-
     }
-
 }
