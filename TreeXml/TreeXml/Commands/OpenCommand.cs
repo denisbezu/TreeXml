@@ -30,9 +30,9 @@ namespace TreeXml.Commands
         public string ExecuteHelpCommand()
         {
             return "Open \t This command allows you to open the file \n" +
-                   "Usage: open [file ] [-[parameter] value]\n" +
-                   "Available values and parameters:\nout\t\t Output file\n" +
-                   "a \t\t Search algorithm (level or width)\n" +
+                   "Usage: open [filename] [-[parameter] value]\n" +
+                   "Available values and parameters:\nout\t\t Output file(value - filename)\n" +
+                   "a \t\t Search algorithm (value - level or width)\n" +
                    "id \t\t Search by id (value - id)\n" +
                    "name \t\t Search by name (value - name)\n" +
                    "lastname \t Search by lastname (value - lastname)\n" +
@@ -195,7 +195,7 @@ namespace TreeXml.Commands
             }
             return true;
         }
-        
+
         private bool OpenFile(string parameter) // поправить
         {
             Console.WriteLine("I'am trying to open the file...");
@@ -206,10 +206,10 @@ namespace TreeXml.Commands
             }
             else
             {
-                Saver saver = new Saver();
+                OpenXml openXml = new OpenXml();
                 bool errorChecker;
                 string errorMessage;
-                Tree<Employee> tree = saver.LoadXml(parameter, out errorChecker, out errorMessage);
+                Tree<Employee> tree = openXml.LoadXml<Employee>(parameter, out errorChecker, out errorMessage);
                 if (!errorChecker)
                 {
                     Console.WriteLine(errorMessage);
@@ -223,12 +223,23 @@ namespace TreeXml.Commands
         private void SearchCommand(string argument, Employee searchableEmployee)
         {
             Searcher searcher = new Searcher();
-            int step;
-            Node<Employee> searcherResult;
+            int step = 0;
+            string runtime = "";
+            Node<Employee> searcherResult = null;
             if (argument.ToLower().Equals("level"))
-                searcherResult = searcher.LevelSearchFirst(Root, searchableEmployee, out step);
+            {
+                if (Root != null)
+                    searcherResult = searcher.LevelSearchFirst(Root, searchableEmployee, out step, out runtime);
+                else
+                    return;
+            }
             else
-                searcherResult = searcher.WidthSearchFirst(Root, searchableEmployee, out step);
+            {
+                if (Root != null)
+                    searcherResult = searcher.WidthSearchFirst(Root, searchableEmployee, out step, out runtime);
+                else
+                    return;
+            }
 
             if (searcherResult != null)
             {
@@ -236,11 +247,13 @@ namespace TreeXml.Commands
                               "Lastname : " + searcherResult.Value.LastName + "\nAge : " +
                               searcherResult.Value.Age + "\nPosition : " + searcherResult.Value.Position + "\n");
                 Console.WriteLine("Number of steps: {0}\n-----------------", step);
+                Console.WriteLine("Runtime : " + runtime + " milliseconds");
             }
             else
             {
                 Console.WriteLine("Nothing found");
             }
+
         }
 
         private void ShowTree(string argument)
@@ -257,7 +270,10 @@ namespace TreeXml.Commands
 
         private void ExtractTree(string argument)// сделать вывод в файл еще
         {
-            Console.WriteLine("Extracting tree to the file " + argument + "...");
+            SaveXml saveXml = new SaveXml();
+            saveXml.CreateXml(Root, argument);
+
+            Console.WriteLine("Extracting current tree to the file " + argument + "...");
         }
 
         #region Checkers
@@ -281,7 +297,7 @@ namespace TreeXml.Commands
                 return true;
             else if (SearchableEmployee.Id != 0)
                 return true;
-            else if ( SearchableEmployee.Name != null && SearchableEmployee.LastName != null )
+            else if (SearchableEmployee.Name != null && SearchableEmployee.LastName != null)
                 return true;
             else
                 return false;
@@ -328,7 +344,7 @@ namespace TreeXml.Commands
             Employee emp6 = new Employee(1, "Not", "Needed", 25, "QA Engineer");
             Employee emp7 = new Employee(3, "Doha", "Den", 26, "Project Manager");
             Tree<Employee> tree = new Tree<Employee>();
-            
+
             var root = tree.AddRoot(emp2);
             try
             {

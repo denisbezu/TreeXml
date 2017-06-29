@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace TreeXmlLibrary
 {
     public class Employee : IEquatable<Employee>
-    { 
+    {
         public Employee()// возможно убрать
         {
         }
@@ -48,7 +48,7 @@ namespace TreeXmlLibrary
                 return true;
             if (obj.GetType() != this.GetType())
                 return false;
-            return Equals((Employee) obj);
+            return Equals((Employee)obj);
         }
         public override int GetHashCode()
         {

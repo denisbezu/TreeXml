@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
+
 
 namespace TreeXmlLibrary
 {
     public class Searcher
     {
-        public Node<T> WidthSearchFirst<T>(Node<T> rootNode, T t, out int step) where T : class
+        public Node<T> WidthSearchFirst<T>(Node<T> rootNode, T t, out int step, out string runtime) where T : class
         {
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
             var counter = 0;
-
             var nodesQueue = new Queue<Node<T>>();
             nodesQueue.Enqueue(rootNode);
             while (nodesQueue.Count != 0)
@@ -21,6 +21,9 @@ namespace TreeXmlLibrary
                 if (SearchPicker(currentNode.Value, t))
                 {
                     step = counter;
+                    stopWatch.Stop();
+                    TimeSpan ts = stopWatch.Elapsed;
+                    runtime = ts.TotalMilliseconds.ToString();
                     return currentNode;
                 }
                 else
@@ -33,11 +36,14 @@ namespace TreeXmlLibrary
                 }
             }
             step = counter;
+            runtime = "";
             return null;
         }
 
-        public Node<T> LevelSearchFirst<T>(Node<T> rootNode, T t, out int step) where T:class 
+        public Node<T> LevelSearchFirst<T>(Node<T> rootNode, T t, out int step, out string runtime) where T : class
         {
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
             var counter = 0;
             var nodesStack = new Stack<Node<T>>();
             nodesStack.Push(rootNode);
@@ -48,6 +54,9 @@ namespace TreeXmlLibrary
                 if (SearchPicker(currentNode.Value, t))
                 {
                     step = counter;
+                    stopWatch.Stop();
+                    TimeSpan ts = stopWatch.Elapsed;
+                    runtime = ts.TotalMilliseconds.ToString();
                     return currentNode;
                 }
                 foreach (var children in currentNode.Children)
@@ -56,6 +65,7 @@ namespace TreeXmlLibrary
                 }
             }
             step = counter;
+            runtime = "";
             return null;
         }
 
@@ -103,8 +113,8 @@ namespace TreeXmlLibrary
                 searchableEmployee.LastName != null && searchableEmployee.Position != null)
                     return SearchByAll(currentEmployee, searchableEmployee);
                 else if (searchableEmployee.Id != 0)
-                        return SearchById(currentEmployee, searchableEmployee);
-                else if(searchableEmployee.Name != null && searchableEmployee.LastName != null)
+                    return SearchById(currentEmployee, searchableEmployee);
+                else if (searchableEmployee.Name != null && searchableEmployee.LastName != null)
                     return SearchByNameLastName(currentEmployee, searchableEmployee);
             }
             else

@@ -1,15 +1,17 @@
 ﻿using System;
+using System.CodeDom;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Xml;
 
 namespace TreeXmlLibrary
 {
-    public class Saver
+    public class OpenXml
     {
         private XmlReader _reader;
-        //добавить проверку на имена элементов (посмотреть), не уверен, что нужна 
-        public Tree<Employee> LoadXml(string path, out bool errorChecker, out string errorMessage)
+        //добавить проверку на имена элементов (посмотреть), не уверен, что нужна эта проверка
+        public Tree<T> LoadXml<T>(string path, out bool errorChecker, out string errorMessage) where T : class
         {
             errorMessage = "";
             try
@@ -22,7 +24,7 @@ namespace TreeXmlLibrary
                 errorMessage = e.Message;
                 return null;
             }
-            var tree = new Tree<Employee>();
+            var tree = new Tree<T>();
             int level = 0;
             try
             {
@@ -30,7 +32,8 @@ namespace TreeXmlLibrary
                 {
                     if (_reader.IsStartElement())
                     {
-                        tree.AddRoot(new Employee() {LastName = _reader.Name});
+                        Lazy<T> root = new Lazy<T>();
+                        tree.AddRoot(root.Value);
                         level++;
                         if (_reader.IsEmptyElement)
                         {
@@ -60,11 +63,10 @@ namespace TreeXmlLibrary
                 errorMessage = e.Message;
                 return null;
             }
-            errorChecker = true;      
+            errorChecker = true;
             return tree;
         }
-
-        private void ReadNode(ref int level, Tree<Employee> tree, Node<Employee> parent)
+        private void ReadNode<T>(ref int level, Tree<T> tree, Node<T> parent) where T : class
         {
             int currentLvl = level;
             while (_reader.Read())
@@ -72,18 +74,18 @@ namespace TreeXmlLibrary
                 if (_reader.IsStartElement())
                 {
                     level++;
-                    Employee empToAdd;
+                    T empToAdd;
                     if (_reader.IsEmptyElement)
                     {
-                        empToAdd = MakeEmployee();
+                        empToAdd = MakeInstance<T>();
                         tree.AddNode(empToAdd, parent);
                     }
                     else
                     {
-                        empToAdd = MakeEmployee();
+                        empToAdd = MakeInstance<T>();
                         var addedNode = tree.AddNode(empToAdd, parent);
-                        if(addedNode == null)
-                            throw new Exception("I cannot add an existing item to a tree : id = " + empToAdd.Id);
+                        if (addedNode == null)
+                            throw new Exception("You are trying to add an existing item to the read, please, change your tree");
                         ReadNode(ref level, tree, addedNode);
                     }
                 }
@@ -103,7 +105,6 @@ namespace TreeXmlLibrary
                 }
             }
         }
-
         private void PrintIndent(int level, string str, bool isRoot)
         {
             StringBuilder s = new StringBuilder();
@@ -120,17 +121,35 @@ namespace TreeXmlLibrary
 
             Console.WriteLine(s);
         }
-        private Employee MakeEmployee()
+        private T MakeInstance<T>() where T : class
         {
-            Employee employee = new Employee()
+            Lazy<T> currentType = new Lazy<T>();
+            if (_reader.HasAttributes)
             {
-                Name = _reader.GetAttribute("Name"),
-                LastName = _reader.GetAttribute("LastName"),
-                Position = _reader.GetAttribute("Position"),
-                Id = int.Parse(_reader.GetAttribute("Id")),
-                Age = int.Parse(_reader.GetAttribute("Age"))
-            };
-            return employee;
+                while (_reader.MoveToNextAttribute())
+                {
+                    PropertyInfo propertyInfo = currentType.Value.GetType().GetProperty(_reader.Name);
+                    if (propertyInfo != null && propertyInfo.PropertyType == typeof(int))
+                    {
+                       propertyInfo.SetValue(currentType.Value, int.Parse(_reader.Value), null);
+                    }
+                    else if (propertyInfo != null && propertyInfo.PropertyType == typeof(double))
+                    {
+                        propertyInfo.SetValue(currentType.Value, double.Parse(_reader.Value), null);
+                    }
+                    else if (propertyInfo != null && propertyInfo.PropertyType == typeof(bool))
+                    {
+                        propertyInfo.SetValue(currentType.Value, bool.Parse(_reader.Value), null);
+                    }
+                    else
+                    {
+                        if (propertyInfo != null)
+                            propertyInfo.SetValue(currentType.Value, _reader.Value, null);
+                    }
+
+                }
+            }
+            return currentType.Value;
         }
     }
 }

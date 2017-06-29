@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using TreeXml.Commands;
 using TreeXml.Interfaces;
-using TreeXmlLibrary;
 
 namespace TreeXml
 {
@@ -66,11 +63,11 @@ namespace TreeXml
                     spaceCounter += 1;
                 }
             }
-            noSpacesList = CheckQuot(noSpacesList);
+            noSpacesList = CheckMergeQuot(noSpacesList);
             return noSpacesList;
         }
 
-        private List<string> CheckQuot(List<string> splittedList)
+        private List<string> CheckMergeQuot(List<string> splittedList)// если есть ввод с двойными кавычками, то объединяем их
         {
             int rowNumber = splittedList.Count;
             string resultString = "";

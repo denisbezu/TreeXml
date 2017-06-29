@@ -11,9 +11,9 @@ namespace TreeXml.Commands
         {
             if (commandArgs.Count == 1 && commandArgs[0].ToLower().Equals("help")) // второе условие возможно не нужно
             {
-                Console.Write("Available commands:\n " +
-                              "-s \t Show the tree \nhelp \t Show this help \nexit \t" +
-                              " close program\ncls \t clear console\n-a \t Search algorithm\n");
+                Console.Write("Available commands:\n" +
+                              "open \t open the tree \nhelp \t Show this help \nexit \t" +
+                              " close program\ncls \t clear console\n");
                 return true;
             }
             else if (commandArgs.Count == 2 && CheckCommand(commandArgs[1]))
