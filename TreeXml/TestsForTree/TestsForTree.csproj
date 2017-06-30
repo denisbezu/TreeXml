@@ -49,6 +49,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\ClearCommandTest.cs" />
+    <Compile Include="ConsoleDrawerTests.cs" />
+    <Compile Include="EmployeeTests.cs" />
+    <Compile Include="OpenXmlTests.cs" />
+    <Compile Include="SaveXmlTests.cs" />
+    <Compile Include="SearcherTests.cs" />
+    <Compile Include="TestHelper.cs" />
     <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -56,6 +62,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TreeXmlLibrary\TreeXmlLibrary.csproj">
+      <Project>{FEA42CC4-C991-418E-BC37-2EB94AFDBF2C}</Project>
+      <Name>TreeXmlLibrary</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TreeXml\TreeXml.csproj">
       <Project>{025A6E5C-5CD2-4C47-B192-FBEDE0C4639F}</Project>
       <Name>TreeXml</Name>

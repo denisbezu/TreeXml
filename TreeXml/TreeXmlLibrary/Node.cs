@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Text;
 
-namespace TreeXmlLibrary 
+namespace TreeXmlLibrary
 {
     public class Node<T> where T : class
     {
@@ -35,6 +33,7 @@ namespace TreeXmlLibrary
         {
             get { return _children.Value; }
         }
+
         #region Equals
         public override bool Equals(object obj)
         {

@@ -49,6 +49,7 @@ namespace TreeXmlLibrary
                             {
                                 errorChecker = false;
                                 errorMessage = e.Message;
+                                _reader.Close();
                                 return null;
                             }
                         }
@@ -61,9 +62,11 @@ namespace TreeXmlLibrary
             {
                 errorChecker = false;
                 errorMessage = e.Message;
+                _reader.Close();
                 return null;
             }
             errorChecker = true;
+            _reader.Close();
             return tree;
         }
         private void ReadNode<T>(ref int level, Tree<T> tree, Node<T> parent) where T : class
@@ -85,7 +88,7 @@ namespace TreeXmlLibrary
                         empToAdd = MakeInstance<T>();
                         var addedNode = tree.AddNode(empToAdd, parent);
                         if (addedNode == null)
-                            throw new Exception("You are trying to add an existing item to the read, please, change your tree");
+                            throw new Exception("You are trying to add an existing item to the tree, please, change your tree");
                         ReadNode(ref level, tree, addedNode);
                     }
                 }
@@ -105,51 +108,35 @@ namespace TreeXmlLibrary
                 }
             }
         }
-        private void PrintIndent(int level, string str, bool isRoot)
-        {
-            StringBuilder s = new StringBuilder();
-            for (int i = 0; i < level; i++)
-                s.Append("\t");
-            s.Append(str);
-            if (_reader.HasAttributes)
-            {
-                for (int i = 0; i < _reader.AttributeCount; i++)
-                {
-                    s.Append("  " + _reader[i]);
-                }
-            }
-
-            Console.WriteLine(s);
-        }
         private T MakeInstance<T>() where T : class
         {
-            Lazy<T> currentType = new Lazy<T>();
+            T currentType = Activator.CreateInstance<T>();
             if (_reader.HasAttributes)
             {
                 while (_reader.MoveToNextAttribute())
                 {
-                    PropertyInfo propertyInfo = currentType.Value.GetType().GetProperty(_reader.Name);
-                    if (propertyInfo != null && propertyInfo.PropertyType == typeof(int))
+                    PropertyInfo propertyInfo = currentType.GetType().GetProperty(_reader.Name);
+                    if (propertyInfo != null && (propertyInfo.PropertyType == typeof(int) || propertyInfo.PropertyType == typeof(int?)))
                     {
-                       propertyInfo.SetValue(currentType.Value, int.Parse(_reader.Value), null);
+                       propertyInfo.SetValue(currentType, int.Parse(_reader.Value), null);
                     }
                     else if (propertyInfo != null && propertyInfo.PropertyType == typeof(double))
                     {
-                        propertyInfo.SetValue(currentType.Value, double.Parse(_reader.Value), null);
+                        propertyInfo.SetValue(currentType, double.Parse(_reader.Value), null);
                     }
                     else if (propertyInfo != null && propertyInfo.PropertyType == typeof(bool))
                     {
-                        propertyInfo.SetValue(currentType.Value, bool.Parse(_reader.Value), null);
+                        propertyInfo.SetValue(currentType, bool.Parse(_reader.Value), null);
                     }
                     else
                     {
                         if (propertyInfo != null)
-                            propertyInfo.SetValue(currentType.Value, _reader.Value, null);
+                            propertyInfo.SetValue(currentType, _reader.Value, null);
                     }
 
                 }
             }
-            return currentType.Value;
+            return currentType;
         }
     }
 }

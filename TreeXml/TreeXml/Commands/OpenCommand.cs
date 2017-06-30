@@ -11,6 +11,7 @@ namespace TreeXml.Commands
         public Node<Employee> Root { get; set; }
         public bool ExecuteCommand(List<string> commandArgs)
         {
+            Root = null;
             if (commandArgs.Count == 2 && commandArgs[1].ToLower().Equals("/?"))
             {
                 Console.Write(ExecuteHelpCommand());
@@ -181,7 +182,7 @@ namespace TreeXml.Commands
                             break;
                         case "show":
                             if (parameters["show"].ToLower().Equals("y"))
-                                ShowTree(parameters["open"]);
+                                ShowTree();
                             break;
                         case "output":
                             ExtractTree(parameters["output"]);
@@ -198,7 +199,6 @@ namespace TreeXml.Commands
 
         private bool OpenFile(string parameter) // поправить
         {
-            Console.WriteLine("I'am trying to open the file...");
             if (parameter.ToLower().Equals("test"))
             {
                 Root = TestNode();
@@ -216,6 +216,7 @@ namespace TreeXml.Commands
                     return false;
                 }
                 Root = tree.Root;
+                Console.WriteLine("The file " + parameter + " is openned");
                 return true;
             }
         }
@@ -256,7 +257,7 @@ namespace TreeXml.Commands
 
         }
 
-        private void ShowTree(string argument)
+        private void ShowTree()
         {
             //добавить потом проверку на null root-у
             if (Root != null)
@@ -266,14 +267,24 @@ namespace TreeXml.Commands
                 Console.Write(tree);
                 Console.WriteLine();
             }
+            else
+            {
+                Console.WriteLine("The root item isnt set, so you cannot use the show command");
+            }
         }
 
         private void ExtractTree(string argument)// сделать вывод в файл еще
         {
-            SaveXml saveXml = new SaveXml();
-            saveXml.CreateXml(Root, argument);
-
-            Console.WriteLine("Extracting current tree to the file " + argument + "...");
+            if (Root != null)
+            {
+                SaveXml saveXml = new SaveXml();
+                saveXml.CreateXml(Root, argument);
+                Console.WriteLine("Extracting current tree to the file " + argument + "...");
+            }
+            else
+            {
+                Console.WriteLine("The root item isnt set, so you cannot use the output command");
+            }
         }
 
         #region Checkers

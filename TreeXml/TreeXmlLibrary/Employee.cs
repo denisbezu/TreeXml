@@ -22,7 +22,7 @@ namespace TreeXmlLibrary
         public int Id { get; set; }
         public string Name { get; set; }
         public string LastName { get; set; }
-        public int Age { get; set; }
+        public int? Age { get; set; }
         public string Position { get; set; }
         public override string ToString()
         {
@@ -57,7 +57,7 @@ namespace TreeXmlLibrary
                 var hashCode = Id;
                 hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (LastName != null ? LastName.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ Age;
+                hashCode = (hashCode * 397) ^ (Age != null ? Age.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Position != null ? Position.GetHashCode() : 0);
                 return hashCode;
             }
