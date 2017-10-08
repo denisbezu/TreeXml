@@ -13,8 +13,8 @@ namespace TestsForTree
             SaveXml saveXml = new SaveXml();
             string path = "testFile.xml";
             var root = TestHelper.TestNode();
-            Assert.IsInstanceOfType(root, typeof(Node<Employee>));
-            saveXml.CreateXml(root, path);
+            Assert.IsInstanceOfType(root, typeof(Node));
+            saveXml.Save(root, path);
             Assert.IsTrue(File.Exists(path));
         }
 

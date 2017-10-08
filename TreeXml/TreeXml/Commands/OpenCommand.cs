@@ -1,392 +1,260 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using TreeXml.Interfaces;
+using System.Linq;
+using TreeXml.Checkers;
+using TreeXml.Enum;
 using TreeXmlLibrary;
+using TreeXmlLibrary.Enums;
+using TreeXmlLibrary.interfaces;
+using TreeXmlLibrary.Search;
 
 namespace TreeXml.Commands
 {
-    public class OpenCommand : IConsoleCommand
+    public class OpenCommand : ConsoleCommand
     {
-        public Node<Employee> Root { get; set; }
-        public bool ExecuteCommand(List<string> commandArgs)
+        //текущее дерево
+        protected Tree Tree { get; set; }
+
+        protected Searcher Searcher { get; set; }
+
+        public OpenCommand()
         {
-            Root = null;
-            if (commandArgs.Count == 2 && commandArgs[1].ToLower().Equals("/?"))
-            {
-                Console.Write(ExecuteHelpCommand());
-                return true;
-            }
-            else if (commandArgs.Count % 2 == 0)
-            {
-                return CheckOpenCommands(commandArgs);
-
-            }
-
-            return false;
+            Checker = new OpenCmdChecker();
         }
 
-        private Employee SearchableEmployee { get; set; }
-
-        public string ExecuteHelpCommand()
+        public override string ExecuteHelpCommand() //помощь
         {
             return "Open \t This command allows you to open the file \n" +
                    "Usage: open [filename] [-[parameter] value]\n" +
-                   "Available values and parameters:\nout\t\t Output file(value - filename)\n" +
+                   "Available parameters and values:\nout\t\t Output file(value - filename)\n" +
                    "a \t\t Search algorithm (value - level or width)\n" +
-                   "id \t\t Search by id (value - id)\n" +
-                   "name \t\t Search by name (value - name)\n" +
-                   "lastname \t Search by lastname (value - lastname)\n" +
-                   "age \t\t Search by age (value - age)\n" +
-                   "position \t Search by position (value - position)\n" +
+                   "text \t\t Search by text (value - value of node)\n" +
+                   "name \t\t Search by name (value - name of node)\n" +
+                   "hasvalue \t\t Search by Attribute name (value - name of attribute)\n" +
                    "show \t\t Allows to show the tree (value - y or n)\n" +
-                   "You can find the needed item by using search by id, by lastname and name or by all attributes\n";
+                   "att[attribute name] \t\t Search by attribute (value - value of attribute)\n" +
+                   "mode \t\t Allows you to specify a mode of search (value - first or all)\n" +
+                   "type \t\t Allows you to specify a type of research (value - or, and, names)";
         }
 
-        private bool CheckOpenCommands(List<string> commandArgs)
+        protected override bool ExecuteSpecialCommand(List<string> commandArgs)
         {
-            Dictionary<string, bool> bools = new Dictionary<string, bool>
+            Searcher = new Searcher();
+            if (commandArgs.Count % 2 == 0)
+                return CreateParameters(commandArgs);
+            return false;
+        }
+
+        #region Search
+        protected virtual List<Parameter> ResearchParameters(IList<Parameter> parameters)//отсеивание параметров поиска
+        {
+            List<Parameter> searchParams = new List<Parameter>();
+            foreach (var parameter in parameters)
             {
-                {"open", false }, {"output", false }, {"alg", false}, {"id", false}, {"name", false},
-                { "lastname", false}, {"age", false}, {"position", false}, {"show", false}
-            };
-            Dictionary<string, string> parameters = new Dictionary<string, string>
-            {
-                { "open", null }, { "output", null }, { "alg", null }, { "show", null },
-            };
-            for (int i = 0; i < commandArgs.Count; i += 2)
-            {
-                switch (commandArgs[i].ToLower())
+                if (parameter.Name.ToLower() != OpenAttribute.Open &&
+                    parameter.Name.ToLower() != OpenAttribute.Show &&
+                    parameter.Name.ToLower() != OpenAttribute.Output)
                 {
-                    case "open":
+                    var searchParameter = parameter.Clone() as Parameter;
+                    searchParameter.Name = parameter.Name.Substring(1);
+                    searchParams.Add(searchParameter);
+                }
+            }
+            return searchParams;
+        }
+
+        protected List<Node> AlgCommand(List<Parameter> searchParameters)//метод для вызова поиска 
+        {
+            var searchResult = SearchCommand(searchParameters);
+            if (searchResult != null)
+            {
+                foreach (var node in searchResult)
+                    DrawSearchResult(node);
+                DrawResult(Searcher.Step, Searcher.Runtime);
+                return searchResult;
+            }
+            Console.WriteLine(@"Nothing found");
+            return null;
+        }
+
+        private void SetSearchParameters(List<Parameter> parameters)
+        {
+            Searcher.Step = 0;
+            Searcher.Runtime = "";
+            foreach (var parameter in parameters)
+            {
+                switch (parameter.Name.ToLower())
+                {
+                    case "a":
                         {
-                            if (CheckOpenCommand(commandArgs[i + 1]) && bools["open"] == false)
-                            {
-                                parameters["open"] = commandArgs[i + 1];
-                                bools["open"] = true;
-                            }
-                            else
-                                return false;
+                            Searcher.AlgoType = parameter.Argument.ToLower().Equals("level") ? AlgoType.Level : AlgoType.Width;
                             break;
                         }
-                    case "-show":
+                    case "name":
                         {
-                            if (CheckShowCommand(commandArgs[i + 1]) && bools["show"] == false)
-                            {
-                                parameters["show"] = commandArgs[i + 1];
-                                bools["show"] = true;
-                            }
-                            else
-                                return false;
+                            Searcher.Names.Add(parameter.Argument);
                             break;
                         }
-                    case "-out":
+                    case "text":
                         {
-                            if (CheckOutputCommand(commandArgs[i + 1]) && bools["output"] == false)
-                            {
-                                parameters["output"] = commandArgs[i + 1];
-                                bools["output"] = true;
-                            }
-                            else
-                                return false;
+                            Searcher.Textes.Add(parameter.Argument);
                             break;
                         }
-                    case "-a":
+                    case "hasvalue":
                         {
-                            if (CheckAlgoCommand(commandArgs[i + 1]) && bools["alg"] == false)
-                            {
-                                SearchableEmployee = new Employee();
-                                parameters["alg"] = commandArgs[i + 1];
-                                bools["alg"] = true;
-                            }
-                            else
-                                return false;
+                            Searcher.Attributes.Add(new TreeXmlLibrary.Attribute() { Name = parameter.Argument });
                             break;
                         }
-                    case "-id":
+                    case "type":
                         {
-                            int idValue;
-                            if (CheckAddIntCommand(commandArgs[i + 1], bools["alg"], out idValue) && bools["id"] == false)
-                            {
-                                SearchableEmployee.Id = idValue;
-                                bools["id"] = true;
-                            }
+                            if (parameter.Argument.ToLower().Equals("and"))
+                                Searcher.SearchType = SearchType.And;
                             else
-                                return false;
+                                Searcher.SearchType = SearchType.Names;
                             break;
                         }
-                    case "-name":
+                    case "mode":
                         {
-                            if (CheckAddStringCommand(commandArgs[i + 1], bools["alg"]) && bools["name"] == false)
-                            {
-                                SearchableEmployee.Name = commandArgs[i + 1];
-                                bools["name"] = true;
-                            }
-                            else
-                                return false;
-                            break;
-                        }
-                    case "-lastname":
-                        {
-                            if (CheckAddStringCommand(commandArgs[i + 1], bools["alg"]) && bools["lastname"] == false)
-                            {
-                                SearchableEmployee.LastName = commandArgs[i + 1];
-                                bools["lastname"] = true;
-                            }
-                            else
-                                return false;
-                            break;
-                        }
-                    case "-age":
-                        {
-                            int ageValue;
-                            if (CheckAddIntCommand(commandArgs[i + 1], bools["alg"], out ageValue) && bools["age"] == false)
-                            {
-                                SearchableEmployee.Age = ageValue;
-                                bools["age"] = true;
-                            }
-                            else
-                                return false;
-                            break;
-                        }
-                    case "-position":
-                        {
-                            if (CheckAddStringCommand(commandArgs[i + 1], bools["alg"]) && bools["position"] == false)
-                            {
-                                SearchableEmployee.Position = commandArgs[i + 1];
-                                bools["position"] = true;
-                            }
-                            else
-                                return false;
+                            Searcher.SearchMode = parameter.Argument.ToLower().Equals("first") ? SearchMode.First : SearchMode.All;
                             break;
                         }
                     default:
-                        return false;
+                        {
+                            Searcher.Attributes.Add(new TreeXmlLibrary.Attribute(parameter.Name.Substring(3), parameter.Argument));
+                            break;
+                        }
                 }
             }
-            return DoAllCommands(bools, parameters);
         }
 
-        private bool DoAllCommands(Dictionary<string, bool> bools, Dictionary<string, string> parameters)
+        private List<Node> SearchCommand(List<Parameter> searchParameters)//поиск узла/узлов
         {
-            if (bools["alg"] && !CheckSearchableEmployee())
-                return false;
-            foreach (var pair in bools)
+            if (Tree == null)
+                return null;
+            SetSearchParameters(searchParameters);
+            return Searcher.Search(Tree.Root);
+        }
+
+        #endregion
+
+        #region Console Output
+
+        protected void OutputXmlCommand(string outputPath, List<Node> searchResult)// метод для вывода в файл
+        {
+            if (searchResult == null)
             {
-                if (pair.Value)
+                SaveTreeXml(outputPath, Tree.Root);
+                return;
+            }
+            if (searchResult.Count == 1)
+                SaveTreeXml(outputPath, searchResult.First());
+            else
+            {
+                var root = TreeRootFormer(searchResult);
+                SaveTreeXml(outputPath, root);
+            }
+        }
+
+        private void DrawResult(int step, string runtime)// печать времени и шагов
+        {
+            Console.WriteLine("-----------------");
+            Console.WriteLine("Number of steps: {0}\n-----------------", step);
+            Console.WriteLine("Runtime : " + runtime + " milliseconds");
+        }
+
+        private void DrawSearchResult(Node node)// печать узлов
+        {
+            Console.WriteLine("Found node:\nName : " + node.Name);
+            if (node.Value != null)
+                Console.WriteLine("Value : " + node.Value);
+            if (node.Attributes != null)
+            {
+                Console.WriteLine("Attributes:");
+                foreach (var attribute in node.Attributes)
                 {
-                    switch (pair.Key)
-                    {
-                        case "open":
-                            OpenFile(parameters["open"]);
-                            break;
-                        case "show":
-                            if (parameters["show"].ToLower().Equals("y"))
-                                ShowTree();
-                            break;
-                        case "output":
-                            ExtractTree(parameters["output"]);
-                            break;
-                        case "alg":
-                            if (bools["alg"] && CheckSearchableEmployee())
-                                SearchCommand(parameters["alg"], SearchableEmployee);
-                            break;
-                    }
+                    Console.WriteLine(attribute.Name + " : " + attribute.Value);
                 }
             }
-            return true;
+            Console.WriteLine("-----------------");
+            ShowTree(node);
         }
 
-        private bool OpenFile(string parameter) // поправить
+        protected void ShowTree(Node node)//отображение дерева начиная с заданного узла
         {
-            if (parameter.ToLower().Equals("test"))
+            if (node != null)
             {
-                Root = TestNode();
-                return true;
+                var consoleDrawer = new NodeXmlString();
+                var tree = consoleDrawer.DrawTree(node);
+                Console.WriteLine(tree);
             }
             else
-            {
-                OpenXml openXml = new OpenXml();
-                bool errorChecker;
-                string errorMessage;
-                Tree<Employee> tree = openXml.LoadXml<Employee>(parameter, out errorChecker, out errorMessage);
-                if (!errorChecker)
-                {
-                    Console.WriteLine(errorMessage);
-                    return false;
-                }
-                Root = tree.Root;
-                Console.WriteLine("The file " + parameter + " is openned");
-                return true;
-            }
+                throw new Exception("The node item isnt set, so it is not possible to show the tree");
         }
 
-        private void SearchCommand(string argument, Employee searchableEmployee)
+
+        #endregion
+
+        #region SaveOpen
+
+        private void OpenXmlFile(string parameter) // команда открытия файла
         {
-            Searcher searcher = new Searcher();
-            int step = 0;
-            string runtime = "";
-            Node<Employee> searcherResult = null;
-            if (argument.ToLower().Equals("level"))
-            {
-                if (Root != null)
-                    searcherResult = searcher.LevelSearchFirst(Root, searchableEmployee, out step, out runtime);
-                else
-                    return;
-            }
-            else
-            {
-                if (Root != null)
-                    searcherResult = searcher.WidthSearchFirst(Root, searchableEmployee, out step, out runtime);
-                else
-                    return;
-            }
-
-            if (searcherResult != null)
-            {
-                Console.Write("----------------\nFound node:\nID : " + searcherResult.Value.Id + "\nName : " + searcherResult.Value.Name + "\n" +
-                              "Lastname : " + searcherResult.Value.LastName + "\nAge : " +
-                              searcherResult.Value.Age + "\nPosition : " + searcherResult.Value.Position + "\n");
-                Console.WriteLine("Number of steps: {0}\n-----------------", step);
-                Console.WriteLine("Runtime : " + runtime + " milliseconds");
-            }
-            else
-            {
-                Console.WriteLine("Nothing found");
-            }
-
+            IOpenFile openXml = new OpenXml();
+            Tree = openXml.Open(parameter);
+            Console.WriteLine("The file " + parameter + " is openned");
         }
 
-        private void ShowTree()
+        private void SaveTreeXml(string argument, Node node)// вывод в файл
         {
-            //добавить потом проверку на null root-у
-            if (Root != null)
+            if (node != null)
             {
-                var consoleDrawer = new ConsoleDrawer();
-                var tree = consoleDrawer.DrawTree(Root);
-                Console.Write(tree);
-                Console.WriteLine();
-            }
-            else
-            {
-                Console.WriteLine("The root item isnt set, so you cannot use the show command");
-            }
-        }
-
-        private void ExtractTree(string argument)// сделать вывод в файл еще
-        {
-            if (Root != null)
-            {
-                SaveXml saveXml = new SaveXml();
-                saveXml.CreateXml(Root, argument);
+                ISaveFile saveXml = new SaveXml();
+                saveXml.Save(node, argument);
                 Console.WriteLine("Extracting current tree to the file " + argument + "...");
             }
             else
-            {
-                Console.WriteLine("The root item isnt set, so you cannot use the output command");
-            }
+                throw new Exception("The root item isnt set, so you cannot use the output command. Cannot save your tree to the file");
         }
 
-        #region Checkers
-        private bool CheckOpenCommand(string argument) // проверка команды открытия дерева
+        protected Node TreeRootFormer(IList<Node> nodes, string rootName = "root")//формирование дерева для сохранения нескольких найденных результатов
         {
-            Regex regex = new Regex(@"^.+\.xml$");
-            if (argument.Equals("test") || regex.IsMatch(argument))
-                return true;
-            return false;
-        }
-        private bool CheckAlgoCommand(string argument)
-        {
-            if (argument.ToLower().Equals("level") || argument.ToLower().Equals("width"))
-                return true;
-            return false;
-        }
-        private bool CheckSearchableEmployee()// изменить
-        {
-            if (SearchableEmployee.Id != 0 && SearchableEmployee.Age != 0 && SearchableEmployee.Name != null &&
-                SearchableEmployee.LastName != null && SearchableEmployee.Position != null)
-                return true;
-            else if (SearchableEmployee.Id != 0)
-                return true;
-            else if (SearchableEmployee.Name != null && SearchableEmployee.LastName != null)
-                return true;
-            else
-                return false;
-        }
-        private bool CheckShowCommand(string parameter)
-        {
-            if (parameter.ToLower().Equals("y") || parameter.ToLower().Equals("n"))
-                return true;
-            return false;
-        }
-        private bool CheckOutputCommand(string argument)
-        {
-            Regex regex = new Regex(@"^[a-z0-9]+\.xml$");
-            if (regex.IsMatch(argument))
-                return true;
-            return false;
-        }
-        private bool CheckAddIntCommand(string argument, bool algValue, out int number)
-        {
-            bool result = Int32.TryParse(argument, out number);
-            if (result && algValue && number > 0)
+            Node root = new Node(rootName);
+            Tree tree = new Tree(root);
+            foreach (var node in nodes)
             {
-                return true;
+                Node child = (Node)node.Clone();
+                child.RemoveParent();
+                root.AddChild(child);
             }
-            return false;
-        }
-        private bool CheckAddStringCommand(string argument, bool boolValue)
-        {
-            if (boolValue && !string.IsNullOrEmpty(argument))
-            {
-                return true;
-            }
-            return false;
+            return root;
         }
         #endregion
 
-        static Node<Employee> TestNode()
+        protected bool CheckSearchableData(List<Parameter> searchParameters)// проверка, задан ли хотя бы один параметр поиска
         {
-            Employee emp1 = new Employee(1, "Denys", "Bezuhlyi", 20, "Project Manager");
-            Employee emp2 = new Employee(2, "Kostya", "Petrov", 21, "Project Manager");
-            Employee emp3 = new Employee(1, "Petya", "Vasev", 20, "Project Manager");
-            Employee emp4 = new Employee(7, "Kolya", "Petrov", 25, "HR");
-            Employee emp5 = new Employee(1, "Sasha", "Maslenikov", 25, "Project Manager");
-            Employee emp6 = new Employee(1, "Not", "Needed", 25, "QA Engineer");
-            Employee emp7 = new Employee(3, "Doha", "Den", 26, "Project Manager");
-            Tree<Employee> tree = new Tree<Employee>();
-
-            var root = tree.AddRoot(emp2);
-            try
-            {
-                var c1 = tree.AddNode(emp3, root); // +
-                var c2 = tree.AddNode(emp1, root); // +
-                var c4 = tree.AddNode(emp5, c1); // +
-                var c123 = tree.AddNode(emp4, root); // +
-                var c5 = tree.AddNode(emp3, c4); // -
-                //var c6 = c5.AddNode(emp4); // -
-                var c10 = tree.AddNode(emp6, c4); // +
-                // var c12 = c4.AddNode(emp7); // +
-                var c145 = tree.AddNode(emp7, c123); // -
-                //var c7 = c6.AddNode(emp2); // -
-                //var c8 = c6.AddNode(emp3); // -
-                Node<Employee> c9;
-                if (c5 != null)
-                    c9 = tree.AddNode(emp2, c5); // -
-                // var c35 = c145.AddNode(emp2);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error");
-            }
-            Tree<Employee> tree2 = new Tree<Employee>();
-            //Employee employee = new Employee();
-            //employee.LastName = "Denys";
-            //Console.WriteLine(employee);
-
-
-            var root2 = tree2.AddRoot(emp3);
-            return root;
+            if (searchParameters.GetByName("name") == null && searchParameters.GetByName("text") == null
+                && searchParameters.CheckStartsWith("att") == null && searchParameters.GetByName("hasvalue") == null)
+                throw new Exception("You most to set at least one paremeter of research, please try again");
+            return true;
         }
+
+        protected override bool ExecuteParameters(IList<Parameter> parameters)
+        {
+            List<Node> searchResult = null;
+            var searchParameters = ResearchParameters(parameters);
+            if (parameters.GetByName(OpenAttribute.Algorithm) != null && !CheckSearchableData(searchParameters))
+                return false;
+            if (parameters.GetByName(OpenAttribute.Open) != null)
+                OpenXmlFile(parameters.GetByName(OpenAttribute.Open).Argument);
+            if (parameters.GetByName(OpenAttribute.Show) != null 
+                && parameters.GetByName(OpenAttribute.Show).Argument.ToLower().Equals("y"))
+                ShowTree(Tree.Root);
+            if (parameters.GetByName(OpenAttribute.Algorithm) != null)
+                searchResult = AlgCommand(searchParameters);
+            if (parameters.GetByName(OpenAttribute.Output) != null)
+                OutputXmlCommand(parameters.GetByName(OpenAttribute.Output).Argument, searchResult);
+            return true;
+        }
+        
     }
+
 }

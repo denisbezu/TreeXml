@@ -1,43 +1,54 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Text;
 using System.Xml;
+using TreeXmlLibrary.interfaces;
 
 namespace TreeXmlLibrary
 {
-    public class SaveXml
+    public class SaveXml : ISaveFile
     {
-        public void CreateXml<T>(Node<T> root, string path) where T : class  // скорее всего переделать на дерево, но не уверен
+        public void Save(Node root, string path) // сохранение
         {
-            XmlWriterSettings settings = new XmlWriterSettings
-            {
-                Indent = true,
-                IndentChars = "\t"
-            };
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.CheckCharacters = false;
+            settings.Encoding = new UnicodeEncoding();
+            settings.Indent = true;
+            settings.IndentChars = "\t";
             using (XmlWriter writer = XmlWriter.Create(path, settings))
             {
+                //writer.Formatting = Formatting.Indented;
+                //writer.Indentation = 4;
+               
                 writer.WriteStartDocument();
-                writer.WriteStartElement(root.Value.GetType().GetTypeInfo().Name + "s");
-                if (root.Children != null)
-                    SaveNode(writer, root);
-                writer.WriteEndElement();
+                SaveNode(writer, root);
                 writer.WriteEndDocument();
                 writer.Close();
             }
         }
-        private void SaveNode<T>(XmlWriter writer, Node<T> parent) where T : class
+
+        private void SaveNode(XmlWriter writer, Node node) // сохранение узла
         {
-            foreach (var child in parent.Children)
+            writer.WriteStartElement(node.Name);
+            if (node.Attributes != null)
             {
-                writer.WriteStartElement(parent.Value.GetType().GetTypeInfo().Name);
-                foreach (var prop in child.Value.GetType().GetProperties())
+                foreach (var attribute in node.Attributes)
                 {
-                    if (prop.GetValue(child.Value, null) != null)
-                        writer.WriteAttributeString(prop.Name, prop.GetValue(child.Value, null).ToString());
+                    writer.WriteAttributeString(attribute.Name, ReplaceChars(attribute.Value));
                 }
-                if (child.Children != null)
-                    SaveNode(writer, child);
-                writer.WriteEndElement();
             }
+            if (!string.IsNullOrEmpty(node.Value))
+                writer.WriteString(node.Value);
+            if (node.Children != null)
+                foreach (var child in node.Children)
+                {
+                    SaveNode(writer, child);
+                }
+            writer.WriteEndElement();
         }
+
+        private string ReplaceChars(string value)
+        {
+            return value.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\"", "\\'").Replace("\t", "\\t");
+        }
+        
     }
 }

@@ -1,46 +1,39 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace TreeXmlLibrary
 {
-    public class Tree<T> where T:class
+    public class Tree
     {
-        private bool _rootExist;
-        private List<T> Nodes { get; set; }
-        public Node<T> Root { get; set; }
-        public Tree()
+        public List<Node> Nodes { get; private set; }
+
+        public string Name { get; set; }
+
+        public Node Root { get; private set; }
+
+        public Tree() : this(new Node())
+        { }
+        
+        public Tree(Node root)
         {
-            Nodes = new List<T>();
+            SetRoot(root);
         }
-        public Node<T> AddRoot(T t)
+
+        private void SetRoot(Node root) // Установка корня дерева
         {
-            Root = new Node<T>(t);
-            if (!_rootExist)
-            {
-                Nodes.Add(t);
-                _rootExist = true;
-            }
-            return Root;
+            if (Root != null)
+                throw new Exception("The root item is already set, you cannot change it!");
+            if(root.Tree != null)
+                throw new Exception("This node has already a tree");
+            Root = root;
+            Root.Tree = this;
+            Name = Root.Name;
+            Nodes = new List<Node> {Root};
         }
-        public Node<T> AddNode(T t, Node<T> parent)// поправить
+
+        public override string ToString()
         {
-            var addedNode = new Node<T>(t);
-            if (!CheckContains(addedNode, parent))
-            {
-                addedNode.Parent = parent;
-                parent.Children.Add(addedNode);
-            }
-            else
-            {
-                addedNode = null;
-            }
-            return addedNode;
-        }
-        private bool CheckContains(Node<T> addedNode, Node<T> parent)
-        {
-            if (parent.Children.Contains(addedNode) || Nodes.Contains(addedNode.Value))
-                return true;
-            Nodes.Add(addedNode.Value);
-            return false;
+            return Name;
         }
     }
 }

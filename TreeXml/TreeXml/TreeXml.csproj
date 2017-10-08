@@ -11,6 +11,10 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -42,14 +46,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Command.cs" />
     <Compile Include="Commands\ClearCommand.cs" />
+    <Compile Include="Commands\ConnectCommand.cs" />
+    <Compile Include="Commands\ConsoleCommand.cs" />
     <Compile Include="Commands\ExitCommand.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
+    <Compile Include="Commands\OpenDbCommand.cs" />
+    <Compile Include="Enum\ConnectAttribute.cs" />
+    <Compile Include="Enum\OpenAttribute.cs" />
+    <Compile Include="Helpers\Checkers\CmdChecker.cs" />
+    <Compile Include="Helpers\Checkers\ConnectCmdChecker.cs" />
+    <Compile Include="Helpers\Checkers\OpenCmdChecker.cs" />
     <Compile Include="Commands\OpenCommand.cs" />
     <Compile Include="ConsoleAPI.cs" />
-    <Compile Include="ConsoleDrawer.cs" />
-    <Compile Include="Interfaces\IConsoleCommand.cs" />
+    <Compile Include="ConsoleFactory.cs" />
+    <Compile Include="Enum\ECommand.cs" />
+    <Compile Include="Helpers\ExtensionClass.cs" />
+    <Compile Include="Helpers\Checkers\OpenDbCmdChecker.cs" />
+    <Compile Include="Helpers\Parameter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -60,6 +74,10 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DatabaseLibrary\DatabaseLibrary.csproj">
+      <Project>{9d95df29-9f97-4e70-a57d-3155796bfc4d}</Project>
+      <Name>DatabaseLibrary</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TreeXmlLibrary\TreeXmlLibrary.csproj">
       <Project>{fea42cc4-c991-418e-bc37-2eb94afdbf2c}</Project>
       <Name>TreeXmlLibrary</Name>

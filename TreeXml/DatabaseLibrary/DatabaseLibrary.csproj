@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9D95DF29-9F97-4E70-A57D-3155796BFC4D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DatabaseLibrary</RootNamespace>
+    <AssemblyName>DatabaseLibrary</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ConnectionData.cs" />
+    <Compile Include="DatabaseNodes\FunctionReader.cs" />
+    <Compile Include="DatabaseNodes\ServerReader.cs" />
+    <Compile Include="DatabaseReader.cs" />
+    <Compile Include="DatabaseNodes\TypeReader.cs" />
+    <Compile Include="DatabaseNodes\ColumnReader.cs" />
+    <Compile Include="DatabaseNodes\ConstraintReader.cs" />
+    <Compile Include="DatabaseNodes\DbReader.cs" />
+    <Compile Include="DatabaseNodes\IndexReader.cs" />
+    <Compile Include="DatabaseNodes\KeysReader.cs" />
+    <Compile Include="DatabaseNodes\ParameterReader.cs" />
+    <Compile Include="DatabaseNodes\ProcedureReader.cs" />
+    <Compile Include="DatabaseNodes\SchemaReader.cs" />
+    <Compile Include="DatabaseNodes\TriggerReader.cs" />
+    <Compile Include="DatabaseNodes\ViewReader.cs" />
+    <Compile Include="Enums\GroupItem.cs" />
+    <Compile Include="Enums\ObjectAttribute.cs" />
+    <Compile Include="Enums\SingleItem.cs" />
+    <Compile Include="FactoryQuery.cs" />
+    <Compile Include="Interfaces\IPrinter.cs" />
+    <Compile Include="LazyLoader.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="QueryExecuter.cs" />
+    <Compile Include="Interfaces\DataBaseItem.cs" />
+    <Compile Include="DatabaseNodes\TableReader.cs" />
+    <Compile Include="SaveScript.cs" />
+    <Compile Include="Script\ConstraintScript.cs" />
+    <Compile Include="Script\DatabaseScript.cs" />
+    <Compile Include="Interfaces\DbItemScriptBase.cs" />
+    <Compile Include="Script\IndexScript.cs" />
+    <Compile Include="Script\KeyScript.cs" />
+    <Compile Include="Script\SchemaScript.cs" />
+    <Compile Include="Script\ScriptHelper.cs" />
+    <Compile Include="Script\TableScript.cs" />
+    <Compile Include="Script\TriggerScript.cs" />
+    <Compile Include="Script\TypeScript.cs" />
+    <Compile Include="Script\ViewProcFuncScript.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TreeXmlLibrary\TreeXmlLibrary.csproj">
+      <Project>{FEA42CC4-C991-418E-BC37-2EB94AFDBF2C}</Project>
+      <Name>TreeXmlLibrary</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

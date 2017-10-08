@@ -1,35 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using TreeXml.Interfaces;
 
 namespace TreeXml.Commands
 {
-    public class ExitCommand : IConsoleCommand
+    public class ExitCommand : ConsoleCommand
     {
-        public bool ExecuteCommand(List<string> commandArgs)
-        {
-            if (commandArgs.Count == 1 && commandArgs[0].ToLower().Equals("exit")) // второе условие возможно не нужно
-            {
-                Environment.Exit(0);
-                return true;
-            }
-            else if (commandArgs.Count == 2 && CheckCommand(commandArgs[1]))
-            {
-                Console.Write(ExecuteHelpCommand());
-                return true;
-            }
-            return false;
-        }
-
-        public string ExecuteHelpCommand()
+        public override string ExecuteHelpCommand()// команда помощи
         {
             return "EXIT \t This command allows you to exit the program\n";
         }
 
-        private bool CheckCommand(string parameter)
+        protected override bool ExecuteSpecialCommand(List<string> commandArgs)
         {
-            if (parameter == "/?")
-                return true;
+            if (commandArgs.Count == 1)
+            {
+                Environment.Exit(0);
+            }
             return false;
         }
     }

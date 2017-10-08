@@ -2,21 +2,32 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using TreeXml.Interfaces;
+using System.Text.RegularExpressions;
+using DatabaseLibrary;
+using TreeXml.Commands;
+using TreeXml.Enum;
 
 namespace TreeXml
 {
     public class ConsoleApi
     {
-        private string Input { get; set; }
-        public void StartInput()
+        private string Input { get; set; } // введенная строка
+
+        private ConnectionData ConnectionData { get; set; }
+
+        public void StartInput()//ввод 
         {
             while (true)
             {
-                Console.Write(Directory.GetCurrentDirectory() + ">");
+                Console.Write(Directory.GetCurrentDirectory() + @">");
                 Input = Console.ReadLine();
                 var commandsParameters = SplitInput();
-                if (commandsParameters.Count != 0)
+                if (commandsParameters == null)
+                {
+                    InValidCommand();
+                    Console.WriteLine();
+                }
+                else if (commandsParameters.Count != 0)
                     if (!CheckInputCommand(commandsParameters))
                     {
                         InValidCommand();
@@ -24,80 +35,58 @@ namespace TreeXml
                     }
             }
         }
-        private void InValidCommand()
+
+        private void InValidCommand()//ошибка ввода
         {
-            Console.Write("Invalid command, retry please");
+            Console.Write(@"Invalid command, retry please");
         }
-        private bool CheckInputCommand(List<string> commandsParameters)
+
+        private bool CheckInputCommand(List<string> commandsParameters)//создаем экземляр нужного класса
         {
+            ConsoleFactory consoleFactory = new ConsoleFactory();
             switch (commandsParameters[0].ToLower())
             {
                 case "open":
-                    return DoCommand(Command.Open, commandsParameters);
+                    return consoleFactory.GetConsoleCommand(ECommand.Open).ExecuteCommand(commandsParameters);
                 case "exit":
-                    return DoCommand(Command.Exit, commandsParameters);
+                    return consoleFactory.GetConsoleCommand(ECommand.Exit).ExecuteCommand(commandsParameters);
                 case "cls":
-                    return DoCommand(Command.Clear, commandsParameters);
+                    return consoleFactory.GetConsoleCommand(ECommand.Clear).ExecuteCommand(commandsParameters);
                 case "help":
-                    return DoCommand(Command.Help, commandsParameters);
+                    return consoleFactory.GetConsoleCommand(ECommand.Help).ExecuteCommand(commandsParameters);
+                case "connect":
+                        return ConnectCmd(consoleFactory, commandsParameters);
+                case "opendb":
+                    {
+                        var openDbCmd = (OpenDbCommand)consoleFactory.GetConsoleCommand(ECommand.OpenDb);
+                        openDbCmd.ConnectionData = ConnectionData;
+                        return openDbCmd.ExecuteCommand(commandsParameters);
+                    }
                 default:
                     return false;
             }
         }
-        private bool DoCommand(IConsoleCommand command, List<string> commandArgs)
-        {
-            return command.ExecuteCommand(commandArgs);
-        }
-        private List<string> SplitInput() // разделяем строку ввода на команды и аргументы подряд
+
+        private List<string> SplitInput()
         {
             string currentInput = Input;
-            var splitedInput = currentInput.Split(' ');
-            var lineNumber = splitedInput.Length;
-            var spaceCounter = 0;
-            List<string> noSpacesList = splitedInput.ToList();
-            for (int i = 0; i < lineNumber; i++)
+            List<string> argsCommands = new List<string>();
+            string word = @"(""[^""]+"")|\S+";
+            foreach (Match match in Regex.Matches(currentInput, word))
             {
-                if (splitedInput[i] == "")
-                {
-                    noSpacesList.RemoveAt(i - spaceCounter);
-                    spaceCounter += 1;
-                }
+                var foundWord = match.Value.Replace("\"", "");
+                argsCommands.Add(foundWord);
             }
-            noSpacesList = CheckMergeQuot(noSpacesList);
-            return noSpacesList;
+            return argsCommands;
         }
 
-        private List<string> CheckMergeQuot(List<string> splittedList)// если есть ввод с двойными кавычками, то объединяем их
+        private bool ConnectCmd(ConsoleFactory consoleFactory, List<string> commandsParameters)
         {
-            int rowNumber = splittedList.Count;
-            string resultString = "";
-            bool mergeContinue = false;
-            int insertIndex = 0, countModification = 0;
-            for (int i = 0; i < rowNumber; i++)
-            {
-                if (splittedList[i].StartsWith("\""))
-                {
-                    mergeContinue = true;
-                    insertIndex = i;
-                }
-                if (splittedList[i].EndsWith("\""))
-                {
-                    resultString += splittedList[i];
-                    mergeContinue = false;
-                    i -= countModification;
-                    rowNumber -= countModification;
-                    splittedList[insertIndex] = resultString.Replace('"', ' ').Trim();
-                    splittedList.RemoveRange(insertIndex + 1, countModification);
-                    countModification = 0;
-                    resultString = "";
-                }
-                if (mergeContinue)
-                {
-                    countModification++;
-                    resultString += splittedList[i] + " ";
-                }
-            }
-            return splittedList;
+            var consoleCmd = (ConnectCommand)consoleFactory.GetConsoleCommand(ECommand.Connect);
+            var commandOk = consoleCmd.ExecuteCommand(commandsParameters);
+            if (commandOk)
+                ConnectionData = consoleCmd.ConnectionData;
+            return commandOk;
         }
     }
 }

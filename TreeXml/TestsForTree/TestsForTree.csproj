@@ -19,6 +19,10 @@
     <TestProjectType>UnitTest</TestProjectType>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -38,28 +42,46 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DatabaseLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DatabaseLibrary\bin\Debug\DatabaseLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MSTest.TestFramework.1.1.11\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MSTest.TestFramework.1.1.11\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\ClearCommandTest.cs" />
+    <Compile Include="Commands\ConnectCommandTests.cs" />
+    <Compile Include="Commands\ExitCommandTests.cs" />
+    <Compile Include="Commands\HelpCommandTest.cs" />
+    <Compile Include="Commands\OpenCommandTests.cs" />
+    <Compile Include="Commands\OpenDbCommandTests.cs" />
     <Compile Include="ConsoleDrawerTests.cs" />
-    <Compile Include="EmployeeTests.cs" />
+    <Compile Include="FactoryQueryTests.cs" />
+    <Compile Include="Helpers\ConnectCmdCheckerTests.cs" />
+    <Compile Include="Helpers\OpenCmdCheckerTests.cs" />
+    <Compile Include="Helpers\OpenDbCmdCheckerTests.cs" />
     <Compile Include="OpenXmlTests.cs" />
+    <Compile Include="QueryExecuterTests.cs" />
     <Compile Include="SaveXmlTests.cs" />
     <Compile Include="SearcherTests.cs" />
     <Compile Include="TestHelper.cs" />
-    <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TreeTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TreeXmlLibrary\TreeXmlLibrary.csproj">
@@ -70,6 +92,9 @@
       <Project>{025A6E5C-5CD2-4C47-B192-FBEDE0C4639F}</Project>
       <Name>TreeXml</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DbTests\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

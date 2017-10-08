@@ -1,142 +1,85 @@
 ﻿using System;
-using System.CodeDom;
 using System.IO;
-using System.Reflection;
-using System.Text;
 using System.Xml;
+using TreeXmlLibrary.interfaces;
 
 namespace TreeXmlLibrary
 {
-    public class OpenXml
+
+    public class OpenXml : IOpenFile
     {
+
         private XmlReader _reader;
-        //добавить проверку на имена элементов (посмотреть), не уверен, что нужна эта проверка
-        public Tree<T> LoadXml<T>(string path, out bool errorChecker, out string errorMessage) where T : class
+
+        public Tree Open(string path) // открытие файла
         {
-            errorMessage = "";
+            Tree tree = null;
             try
             {
                 _reader = XmlReader.Create(path);
-            }
-            catch (FileNotFoundException e)
-            {
-                errorChecker = false;
-                errorMessage = e.Message;
-                return null;
-            }
-            var tree = new Tree<T>();
-            int level = 0;
-            try
-            {
                 while (_reader.Read())
                 {
                     if (_reader.IsStartElement())
                     {
-                        Lazy<T> root = new Lazy<T>();
-                        tree.AddRoot(root.Value);
-                        level++;
-                        if (_reader.IsEmptyElement)
-                        {
-                            //если первый пустой, добавить проверку
-                        }
-                        else
-                        {
-                            try
-                            {
-                                ReadNode(ref level, tree, tree.Root);
-                            }
-                            catch (Exception e)
-                            {
-                                errorChecker = false;
-                                errorMessage = e.Message;
-                                _reader.Close();
-                                return null;
-                            }
-                        }
+                        var rootNode = CreateNode();
+                        tree = new Tree(rootNode);
+                        if (!_reader.IsEmptyElement)
+                            ReadNode(rootNode);
                     }
-                    else
-                        level--;
                 }
             }
-            catch (XmlException e)
+            catch (FileNotFoundException)
             {
-                errorChecker = false;
-                errorMessage = e.Message;
-                _reader.Close();
-                return null;
+                throw;
             }
-            errorChecker = true;
+            catch (Exception)
+            {
+                _reader.Close();
+                throw;
+            }
             _reader.Close();
             return tree;
         }
-        private void ReadNode<T>(ref int level, Tree<T> tree, Node<T> parent) where T : class
+
+        private void ReadNode(Node parent)//прочтение уровня
         {
-            int currentLvl = level;
+            bool exitReader = false;
             while (_reader.Read())
             {
-                if (_reader.IsStartElement())
+                switch (_reader.NodeType)
                 {
-                    level++;
-                    T empToAdd;
-                    if (_reader.IsEmptyElement)
-                    {
-                        empToAdd = MakeInstance<T>();
-                        tree.AddNode(empToAdd, parent);
-                    }
-                    else
-                    {
-                        empToAdd = MakeInstance<T>();
-                        var addedNode = tree.AddNode(empToAdd, parent);
-                        if (addedNode == null)
-                            throw new Exception("You are trying to add an existing item to the tree, please, change your tree");
-                        ReadNode(ref level, tree, addedNode);
-                    }
-                }
-                else
-                {
-                    if (currentLvl == level)
-                    {
-                        level--;
+                    case XmlNodeType.Element:
+                        {
+                            bool isEmpty = _reader.IsEmptyElement;
+                            var data = CreateNode();
+                            parent.AddChild(data);
+                            if (!isEmpty)
+                                ReadNode(data);
+                            break;
+                        }
+                    case XmlNodeType.Text:
+                        {
+                            parent.Value = _reader.Value;
+                            break;
+                        }
+                    case XmlNodeType.EndElement:
+                        exitReader = true;
                         break;
-                    }
-                    level--;
-                    if (currentLvl == level)
-                    {
-                        level--;
-                        break;
-                    }
                 }
+                if (exitReader)
+                    break;
             }
         }
-        private T MakeInstance<T>() where T : class
-        {
-            T currentType = Activator.CreateInstance<T>();
-            if (_reader.HasAttributes)
-            {
-                while (_reader.MoveToNextAttribute())
-                {
-                    PropertyInfo propertyInfo = currentType.GetType().GetProperty(_reader.Name);
-                    if (propertyInfo != null && (propertyInfo.PropertyType == typeof(int) || propertyInfo.PropertyType == typeof(int?)))
-                    {
-                       propertyInfo.SetValue(currentType, int.Parse(_reader.Value), null);
-                    }
-                    else if (propertyInfo != null && propertyInfo.PropertyType == typeof(double))
-                    {
-                        propertyInfo.SetValue(currentType, double.Parse(_reader.Value), null);
-                    }
-                    else if (propertyInfo != null && propertyInfo.PropertyType == typeof(bool))
-                    {
-                        propertyInfo.SetValue(currentType, bool.Parse(_reader.Value), null);
-                    }
-                    else
-                    {
-                        if (propertyInfo != null)
-                            propertyInfo.SetValue(currentType, _reader.Value, null);
-                    }
 
-                }
+        private Node CreateNode() //создание узла
+        {
+            var data = new Node(_reader.Name);
+            if (!_reader.HasAttributes) return data;
+            while (_reader.MoveToNextAttribute())
+            {
+                data.AddAttribute(_reader.Name, _reader.Value);
             }
-            return currentType;
+            return data;
         }
     }
 }
